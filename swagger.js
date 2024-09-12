@@ -18,9 +18,9 @@ const swaggerDocument = {
       email: "",
     },
   },
-  host: "localhost:3000",
+  host: "stream-service-amber.vercel.app",
   basePath: "/",
-  schemes: ["http"],
+  schemes: ["https"],
   consumes: ["application/json"],
   produces: ["application/json"],
   tags: [
