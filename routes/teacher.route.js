@@ -7,21 +7,51 @@ const router = express.Router();
 
 /**
  * @swagger
- * /create-teacher
+ * /create-teacher:
  *   post:
- *     summary: Teacher Yaratish
- *     tags: [O'qituvchilar]
+ *     summary: "O'qituvchi yaratish"
+ *     description: "Yangi o'qituvchini yaratish va JWT token olish"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: "O'qituvchining ismi"
+ *               password:
+ *                 type: string
+ *                 description: "O'qituvchining paroli"
+ *               role:
+ *                 type: string
+ *                 description: "O'qituvchining roli"
+ *               profileImage:
+ *                 type: string
+ *                 description: "O'qituvchining profil rasmi URL"
  *     responses:
  *       200:
- *         description: O'qituvchilar ro'yxati muvaffaqiyatli qoshildi
+ *         description: "O'qituvchi muvaffaqiyatli yaratildi va JWT token yaratildi"
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Teacher'
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 teacher:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                     profileImage:
+ *                       type: string
+ *       400:
+ *         description: "Yaratuvchida xatolik"
  */
-
 router.post("/create-teacher", async (req, res) => {
   try {
     const { password } = req.body;
@@ -46,6 +76,49 @@ router.post("/create-teacher", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /login-teacher:
+ *   post:
+ *     summary: "O'qituvchi tizimga kirishi"
+ *     description: "O'qituvchi tizimga kirishi va JWT token olish"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: "O'qituvchining ismi"
+ *               password:
+ *                 type: string
+ *                 description: "O'qituvchining paroli"
+ *     responses:
+ *       200:
+ *         description: "O'qituvchi muvaffaqiyatli tizimga kirdi va JWT token yaratildi"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                     profileImage:
+ *                       type: string
+ *       401:
+ *         description: "Noto'g'ri foydalanuvchi nomi yoki parol"
+ *       400:
+ *         description: "Server xatosi"
+ */
 router.post("/login-teacher", async (req, res) => {
   try {
     const { name, password } = req.body;
@@ -54,7 +127,7 @@ router.post("/login-teacher", async (req, res) => {
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res
         .status(401)
-        .json({ message: "Notogri foydalanuvchi nomi yoki parol" });
+        .json({ message: "Noto'g'ri foydalanuvchi nomi yoki parol" });
     }
     const token = jwt.sign(
       { userId: user._id, role: user.role },

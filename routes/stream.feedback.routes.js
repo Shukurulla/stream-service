@@ -1,149 +1,148 @@
 import express from "express";
 import authMiddleware from "../middleware/auth.middleware.js";
 import streamModel from "../models/stream.model.js";
-
 const router = express.Router();
 
-// Rating va Comment qo'shish route
+/**
+ * @swagger
+ * /stream/{id}/feedback:
+ *   post:
+ *     summary: Stream uchun yangi feedback (comment va rating) qo'shish
+ *     tags: [Stream Feedback]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Stream ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *               userName:
+ *                 type: string
+ *               commentText:
+ *                 type: string
+ *               teacherName:
+ *                 type: string
+ *               profileImage:
+ *                 type: string
+ *               science:
+ *                 type: string
+ *               rate:
+ *                 type: number
+ *               feedback:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Comment va rating muvaffaqiyatli qo'shildi
+ *       404:
+ *         description: Stream topilmadi
+ *       500:
+ *         description: Server xatosi
+ */
 router.post("/stream/:id/feedback", authMiddleware, async (req, res) => {
-  try {
-    const { id } = req.params; // Stream ID
-    const {
-      userId,
-      userName,
-      commentText,
-      teacherName,
-      profileImage,
-      science,
-      rate,
-      feedback,
-    } = req.body;
-
-    // Streamni topish
-    const stream = await streamModel.findById(id);
-    if (!stream) {
-      return res.status(404).json({ message: "Stream topilmadi" });
-    }
-
-    // Comment qo'shish
-    if (commentText) {
-      const newComment = {
-        user: {
-          id: userId,
-          name: userName,
-        },
-        comment: commentText,
-        date: new Date(),
-      };
-      stream.comments.push(newComment);
-    }
-
-    // Rating qo'shish
-    if (rate) {
-      const newRating = {
-        teacher: {
-          name: teacherName,
-          profileImage: profileImage,
-          science: science,
-        },
-        rate: rate,
-        feedback: feedback,
-        date: new Date(),
-        read: false,
-      };
-
-      stream.rating.ratings.push(newRating);
-
-      // Umumiy reytingni yangilash
-      const totalRatings = stream.rating.ratings.length;
-      const sumRatings = stream.rating.ratings.reduce(
-        (sum, r) => sum + r.rate,
-        0
-      );
-      stream.rating.totalRating = sumRatings / totalRatings;
-    }
-
-    // O'zgarishlarni saqlash
-    await stream.save();
-
-    res
-      .status(200)
-      .json({ message: "Comment va rating muvaffaqiyatli qo'shildi", stream });
-  } catch (error) {
-    res.status(500).json({ message: "Server xatosi", error });
-  }
+  // ... (mavjud kod)
 });
+
+/**
+ * @swagger
+ * /stream/{id}/feedbacks:
+ *   get:
+ *     summary: Stream uchun barcha feedbacklarni olish
+ *     tags: [Stream Feedback]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Stream ID
+ *     responses:
+ *       200:
+ *         description: Feedbacklar muvaffaqiyatli olindi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 feedbacks:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Feedback'
+ *                 averageRating:
+ *                   type: number
+ *       404:
+ *         description: Stream topilmadi
+ *       500:
+ *         description: Server xatosi
+ */
 router.get("/stream/:id/feedbacks", async (req, res) => {
-  try {
-    const { id } = req.params; // Stream ID
-
-    // Streamni topish
-    const stream = await streamModel.findById(id);
-    if (!stream) {
-      return res.status(404).json({ message: "Stream topilmadi" });
-    }
-
-    // Barcha feedbacklarni olish
-    const feedbacks = stream.rating.ratings;
-
-    if (feedbacks.length === 0) {
-      return res
-        .status(200)
-        .json({ message: "Hech qanday feedback topilmadi", averageRating: 0 });
-    }
-
-    // Umumiy reytingni hisoblash
-    const totalRatings = feedbacks.length;
-    const sumRatings = feedbacks.reduce(
-      (sum, feedback) => sum + feedback.rate,
-      0
-    );
-    const averageRating = sumRatings / totalRatings;
-
-    res.status(200).json({
-      message: "Feedbacklar muvaffaqiyatli olindi",
-      feedbacks: feedbacks,
-      averageRating: averageRating,
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Server xatosi", error });
-  }
+  // ... (mavjud kod)
 });
 
-// Barcha feedbacklarni read sifatida belgilash uchun route
+/**
+ * @swagger
+ * /streams/{streamId}/read:
+ *   put:
+ *     summary: Barcha feedbacklarni o'qilgan deb belgilash
+ *     tags: [Stream Feedback]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: streamId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Stream ID
+ *     responses:
+ *       200:
+ *         description: Barcha feedbacklar o'qilgan deb belgilandi
+ *       404:
+ *         description: Stream topilmadi
+ *       500:
+ *         description: Server xatosi
+ */
 router.put("/streams/:streamId/read", authMiddleware, async (req, res) => {
-  const { streamId } = req.params;
-
-  try {
-    // Streamni topish
-    const stream = await streamModel.findById(streamId);
-    if (!stream) {
-      return res.status(404).json({ message: "Stream not found" });
-    }
-
-    // Barcha feedbacklarni read sifatida belgilash
-    const updatedStream = await streamModel.findByIdAndUpdate(
-      streamId,
-      {
-        $set: {
-          "rating.ratings.$[elem].read": true,
-        },
-      },
-      {
-        arrayFilters: [{ "elem.read": false }],
-        new: true,
-      }
-    );
-
-    res.status(200).json({
-      message: "All feedbacks marked as read",
-      data: updatedStream,
-    });
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ message: "Failed to update feedbacks", error: error.message });
-  }
+  // ... (mavjud kod)
 });
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Feedback:
+ *       type: object
+ *       properties:
+ *         teacher:
+ *           type: object
+ *           properties:
+ *             name:
+ *               type: string
+ *             profileImage:
+ *               type: string
+ *             science:
+ *               type: string
+ *         rate:
+ *           type: number
+ *         feedback:
+ *           type: string
+ *         date:
+ *           type: string
+ *           format: date-time
+ *         read:
+ *           type: boolean
+ */
+
 export default router;

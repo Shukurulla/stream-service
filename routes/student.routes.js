@@ -5,6 +5,60 @@ import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /student/register:
+ *   post:
+ *     summary: "Talabani ro'yxatdan o'tkazish"
+ *     description: "Yangi talabani ro'yxatdan o'tkazish va JWT token olish"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: "Talabaning ismi"
+ *               password:
+ *                 type: string
+ *                 description: "Talabaning paroli"
+ *               group:
+ *                 type: string
+ *                 description: "Talabaning guruhi"
+ *               kurs:
+ *                 type: string
+ *                 description: "Talabaning kursi"
+ *               profileImage:
+ *                 type: string
+ *                 description: "Talabaning profil rasmi URL"
+ *     responses:
+ *       201:
+ *         description: "Talaba muvaffaqiyatli ro'yxatdan o'tkazildi va JWT token yaratildi"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 token:
+ *                   type: string
+ *                 student:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                     group:
+ *                       type: string
+ *                     kurs:
+ *                       type: string
+ *                     profileImage:
+ *                       type: string
+ *       500:
+ *         description: "Server xatosi"
+ */
 router.post("/student/register", async (req, res) => {
   const { name, password, group, kurs, profileImage } = req.body;
 
@@ -37,6 +91,52 @@ router.post("/student/register", async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 });
+
+/**
+ * @swagger
+ * /student/login:
+ *   post:
+ *     summary: "Talaba tizimga kirishi"
+ *     description: "Talaba tizimga kirishi va JWT token olish"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: "Talabaning ismi"
+ *               password:
+ *                 type: string
+ *                 description: "Talabaning paroli"
+ *     responses:
+ *       200:
+ *         description: "Talaba muvaffaqiyatli tizimga kirishi va JWT token yaratildi"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 student:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                     group:
+ *                       type: string
+ *                     kurs:
+ *                       type: string
+ *                     profileImage:
+ *                       type: string
+ *       400:
+ *         description: "Noto'g'ri ma'lumotlar"
+ *       500:
+ *         description: "Server xatosi"
+ */
 router.post("/student/login", async (req, res) => {
   const { name, password } = req.body;
 
@@ -65,4 +165,5 @@ router.post("/student/login", async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 });
+
 export default router;

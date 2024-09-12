@@ -4,7 +4,65 @@ import authMiddleware from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-// CREATE a new notification
+/**
+ * @swagger
+ * /notifications:
+ *   post:
+ *     summary: "Yangi bildirishnomani yaratish"
+ *     description: "Yangi bildirishnoma yaratish va saqlash"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               stream:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: "Streamning unikal identifikatori"
+ *                   title:
+ *                     type: string
+ *                     description: "Streamning sarlavhasi"
+ *                   name:
+ *                     type: string
+ *                     description: "Stream o'qituvchisi ismi"
+ *                   profileImage:
+ *                     type: string
+ *                     description: "O'qituvchining profil rasmi URL"
+ *               student:
+ *                 type: string
+ *                 description: "Talabaning unikal identifikatori"
+ *               from:
+ *                 type: object
+ *                 properties:
+ *                   profileImage:
+ *                     type: string
+ *                     description: "O'qituvchining profil rasmi URL"
+ *                   name:
+ *                     type: string
+ *                     description: "O'qituvchining ismi"
+ *                   science:
+ *                     type: string
+ *                     description: "O'qituvchining fani"
+ *               rate:
+ *                 type: integer
+ *                 description: "Tomoshabinning bahosi"
+ *               feedback:
+ *                 type: string
+ *                 description: "Tomoshabinning fikri"
+ *     responses:
+ *       201:
+ *         description: "Bildirishnoma muvaffaqiyatli yaratildi"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *       500:
+ *         description: "Server xatosi"
+ */
 router.post("/notifications", async (req, res) => {
   try {
     const notificationData = req.body;
@@ -20,7 +78,39 @@ router.post("/notifications", async (req, res) => {
   }
 });
 
-// READ all notifications for a specific student and calculate the average rating
+/**
+ * @swagger
+ * /notifications/{studentId}:
+ *   get:
+ *     summary: "Talabaga tegishli barcha bildirishnomalarni olish va o'rtacha reytingni hisoblash"
+ *     description: "Talabaga tegishli barcha bildirishnomalarni olish va ularning o'rtacha reytingini hisoblash"
+ *     parameters:
+ *       - in: path
+ *         name: studentId
+ *         required: true
+ *         description: "Talabaning unikal identifikatori"
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: "Bildirishnomalar va o'rtacha reyting muvaffaqiyatli qaytarildi"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 notifications:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 averageRating:
+ *                   type: number
+ *                   format: float
+ *       404:
+ *         description: "Bildirishnomalar topilmadi"
+ *       500:
+ *         description: "Server xatosi"
+ */
 router.get("/notifications/:studentId", async (req, res) => {
   try {
     const { studentId } = req.params;
@@ -58,7 +148,31 @@ router.get("/notifications/:studentId", async (req, res) => {
   }
 });
 
-// READ a single notification by ID
+/**
+ * @swagger
+ * /notifications/notification/{id}:
+ *   get:
+ *     summary: "ID bo'yicha bitta bildirishnomani olish"
+ *     description: "ID bo'yicha bitta bildirishnomani olish"
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: "Bildirishnomaning unikal identifikatori"
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: "Bildirishnoma muvaffaqiyatli qaytarildi"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *       404:
+ *         description: "Bildirishnoma topilmadi"
+ *       500:
+ *         description: "Server xatosi"
+ */
 router.get("/notifications/notification/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -76,6 +190,25 @@ router.get("/notifications/notification/:id", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /notifications/{studentId}/read:
+ *   put:
+ *     summary: "Talabaga tegishli barcha bildirishnomalarni o'qilgan deb belgilash"
+ *     description: "Talabaga tegishli barcha bildirishnomalarni o'qilgan deb belgilash"
+ *     parameters:
+ *       - in: path
+ *         name: studentId
+ *         required: true
+ *         description: "Talabaning unikal identifikatori"
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: "Barcha bildirishnomalar o'qilgan deb belgilandi"
+ *       500:
+ *         description: "Server xatosi"
+ */
 router.put(
   "/notifications/:studentId/read",
   authMiddleware,
