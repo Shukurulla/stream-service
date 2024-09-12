@@ -5,6 +5,23 @@ import bcrypt from "bcrypt";
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /create-teacher
+ *   post:
+ *     summary: Teacher Yaratish
+ *     tags: [O'qituvchilar]
+ *     responses:
+ *       200:
+ *         description: O'qituvchilar ro'yxati muvaffaqiyatli qoshildi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Teacher'
+ */
+
 router.post("/create-teacher", async (req, res) => {
   try {
     const { password } = req.body;
