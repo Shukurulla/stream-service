@@ -1,15 +1,38 @@
 import mongoose from "mongoose";
 
-const streamModel = mongoose.model("Stream", {
+const ratingSchema = new mongoose.Schema({
+  teacher: {
+    name: { type: String, required: true },
+    profileImage: { type: String, required: true },
+    science: { type: String, required: true },
+  },
+  rate: { type: Number, min: 1, max: 5, required: true },
+  feedback: { type: String },
+  date: { type: Date, default: Date.now },
+  read: { type: Boolean, default: false },
+});
+
+const commentSchema = new mongoose.Schema({
+  user: {
+    id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    name: { type: String, required: true },
+  },
+  comment: { type: String, required: true },
+  date: { type: Date, default: Date.now },
+});
+
+const streamSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
+    trim: true,
   },
   description: {
     type: String,
+    trim: true,
   },
   planStream: {
-    type: String,
+    type: Date, // Streamingni rejalashtirish uchun sana va vaqt
     required: true,
   },
   classRoom: {
@@ -18,38 +41,54 @@ const streamModel = mongoose.model("Stream", {
   },
   isStart: {
     type: Boolean,
-    required: true,
+    default: false,
   },
   isEnded: {
     type: Boolean,
+    default: false,
   },
   streamInfo: {
-    liveStreamId: {
-      type: String,
-      required: true,
-    },
-    streamKey: {
-      type: String,
-      required: true,
-    },
-    assets: {
-      iframe: {
-        type: String,
-        required: true,
-      },
-      player: {
-        type: String,
-        required: true,
-      },
-      hls: {
-        type: String,
-        required: true,
-      },
-    },
+    type: Object,
+  },
+  group: {
+    type: String,
+    required: true,
   },
   teacher: {
-    type: String,
+    id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Teacher",
+      required: true,
+    },
+    name: { type: String, required: true },
   },
+  comments: [commentSchema],
+  rating: {
+    totalRating: {
+      type: Number,
+      default: 0,
+    },
+    ratings: [ratingSchema],
+  },
+  viewers: [
+    {
+      name: {
+        type: String,
+        required: true,
+      },
+      id: mongoose.Types.ObjectId,
+      profileImage: {
+        type: String,
+        required: true,
+      },
+      science: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
 });
 
-export default streamModel;
+const Stream = mongoose.model("Stream", streamSchema);
+
+export default Stream;

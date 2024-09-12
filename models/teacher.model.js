@@ -5,7 +5,15 @@ const teacherModel = mongoose.model("Teacher", {
     type: String,
     required: true,
   },
+  profileImage: {
+    type: String,
+    required: true,
+  },
   password: {
+    type: String,
+    required: true,
+  },
+  originalPassword: {
     type: String,
     required: true,
   },

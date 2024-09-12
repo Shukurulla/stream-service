@@ -1,5 +1,5 @@
 import express from "express";
-import teacherModel from "../models/teacher.model";
+import teacherModel from "../models/teacher.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
@@ -8,10 +8,11 @@ const router = express.Router();
 router.post("/create-teacher", async (req, res) => {
   try {
     const { password } = req.body;
-    const hashedPassword = bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const teacher = await teacherModel.create({
       ...req.body,
+      originalPassword: password,
       password: hashedPassword,
     });
     if (teacher) {
@@ -40,7 +41,7 @@ router.post("/login-teacher", async (req, res) => {
     }
     const token = jwt.sign(
       { userId: user._id, role: user.role },
-      config.jwtSecret,
+      process.env.JWT_SECRET,
       { expiresIn: "30d" }
     );
     res.json({ token, user });
