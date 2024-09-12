@@ -20,7 +20,7 @@ const options = {
     ],
   },
   apis: [
-    "./routes/*.js", // barcha route fayllarini o'z ichiga oladi
+    "./index.js", // barcha route fayllarini o'z ichiga oladi
   ],
 };
 
