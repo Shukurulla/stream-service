@@ -1,27 +1,33 @@
 import swaggerJsdoc from "swagger-jsdoc";
-import swaggerUi from "swagger-ui-express";
 
 const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "Your API Title",
+      title: "EduMeet API",
       version: "1.0.0",
+      description: "API for Managing todo calls",
+      contact: {
+        name: "API Support",
+        email: "",
+      },
     },
+    servers: [
+      {
+        url: "https://stream-service-amber.vercel.app",
+        description: "Production server",
+      },
+      {
+        url: "http://localhost:3000",
+        description: "Development server",
+      },
+    ],
   },
-  apis: ["./routes/*.js"], // Adjust this path to match your route files
+  apis: [
+    "./routes/*.js", // path to your API routes
+  ],
 };
 
-const swaggerSpec = swaggerJsdoc(options);
-
-const swaggerDocument = {
-  openapi: "3.0.0",
-  info: {
-    title: "Your API Title",
-    version: "1.0.0",
-  },
-  paths: swaggerSpec.paths,
-  components: swaggerSpec.components,
-};
-
-export { swaggerUi, swaggerDocument };
+export function generateSwaggerSpec() {
+  return swaggerJsdoc(options);
+}

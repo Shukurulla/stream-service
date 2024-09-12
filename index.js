@@ -1,6 +1,5 @@
 import express from "express";
 import mongoose from "mongoose";
-import { config } from "dotenv";
 import cors from "cors";
 import TeacherRouter from "./routes/teacher.route.js";
 import StreamRouter from "./routes/stream.route.js";
@@ -8,10 +7,8 @@ import StreamFeedbackRouter from "./routes/stream.feedback.routes.js";
 import StudentSignRouter from "./routes/student.routes.js";
 import StudentNotificationRouter from "./routes/student.notification.routes.js";
 import swaggerUi from "swagger-ui-express";
-import swaggerDocument from "./swagger.json" with { type: "json" };
-// JSON faylni import qilish
-
-config();
+import swaggerDocument from "./swagger.json" assert { type: "json" };
+import { generateSwaggerSpec } from "./swagger.js";
 
 const app = express();
 app.use(
@@ -24,7 +21,7 @@ app.use(
 
 app.use(express.json());
 
-const port = process.env.PORT;
+const port = process.env.PORT || 3000;
 const mongo_uri = process.env.MONGO_URI;
 
 mongoose.connect(mongo_uri).then(() => {
@@ -38,10 +35,12 @@ app.use(StreamFeedbackRouter);
 app.use(StudentSignRouter);
 app.use(StudentNotificationRouter);
 
+// Generate Swagger spec dynamically
+const swaggerSpec = generateSwaggerSpec();
+
 // Swaggerni o'rnatish
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-// Serve swagger.json as a static file
-app.use("/swagger.json", express.static("./swagger.json"));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 app.listen(port, () => {
   console.log(`Server started on port: ${port}`);
 });
