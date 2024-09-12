@@ -21,7 +21,7 @@
       "description": "Todo App"
     }
   ],
-  "schemes": ["http", "https"],
+  "schemes": ["https"],
   "securityDefinitions": {
     "bearerAuth": {
       "type": "apiKey",
