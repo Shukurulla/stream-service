@@ -6,11 +6,7 @@ const options = {
     info: {
       title: "EduMeet API",
       version: "1.0.0",
-      description: "API for Managing todo calls",
-      contact: {
-        name: "API Support",
-        email: "",
-      },
+      description: "API for Managing EduMeet operations",
     },
     servers: [
       {
@@ -24,7 +20,7 @@ const options = {
     ],
   },
   apis: [
-    "./routes/*.js", // path to your API routes
+    "./routes/*.js", // barcha route fayllarini o'z ichiga oladi
   ],
 };
 
