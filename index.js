@@ -40,7 +40,10 @@ app.use(StudentNotificationRouter);
 
 // Swaggerni o'rnatish
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-app.use("/swagger", express.static(path.join(__dirname, "public/swagger")));
+app.use(
+  "/swagger",
+  express.static(path.join(__dirname, "public/swagger-ui-bundle.js"))
+);
 
 app.listen(port, () => {
   console.log(`Server started on port: ${port}`);
