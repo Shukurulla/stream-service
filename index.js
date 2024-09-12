@@ -1,6 +1,8 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import TeacherRouter from "./routes/teacher.route.js";
 import StreamRouter from "./routes/stream.route.js";
 import StreamFeedbackRouter from "./routes/stream.feedback.routes.js";
@@ -8,6 +10,9 @@ import StudentSignRouter from "./routes/student.routes.js";
 import StudentNotificationRouter from "./routes/student.notification.routes.js";
 import swaggerUi from "swagger-ui-express";
 import { generateSwaggerSpec } from "./swagger.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(
@@ -27,6 +32,12 @@ mongoose.connect(mongo_uri).then(() => {
   console.log("mongoDb connected");
 });
 
+// Swagger UI fayllarini statik tarzda xizmat qilish
+app.use(
+  "/swagger-ui",
+  express.static(path.join(__dirname, "node_modules/swagger-ui-dist"))
+);
+
 // Routerlarni ulash
 app.use(TeacherRouter);
 app.use(StreamRouter);
@@ -36,9 +47,6 @@ app.use(StudentNotificationRouter);
 
 // Generate Swagger spec dynamically
 const swaggerSpec = generateSwaggerSpec();
-
-// Swagger spetsifikatsiyasini konsolga chiqarish
-console.log(JSON.stringify(swaggerSpec, null, 2));
 
 // Swaggerni o'rnatish
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
