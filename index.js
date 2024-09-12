@@ -7,8 +7,12 @@ import StreamFeedbackRouter from "./routes/stream.feedback.routes.js";
 import StudentSignRouter from "./routes/student.routes.js";
 import StudentNotificationRouter from "./routes/student.notification.routes.js";
 import swaggerUi from "swagger-ui-express";
-import swaggerDocument from "./swagger.json" assert { type: "json" };
 import { generateSwaggerSpec } from "./swagger.js";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(
@@ -34,6 +38,12 @@ app.use(StreamRouter);
 app.use(StreamFeedbackRouter);
 app.use(StudentSignRouter);
 app.use(StudentNotificationRouter);
+
+// Swagger UI fayllarini statik kontentlar sifatida xizmat qilish
+app.use(
+  "/swagger-ui",
+  express.static(path.join(__dirname, "node_modules/swagger-ui-dist"))
+);
 
 // Generate Swagger spec dynamically
 const swaggerSpec = generateSwaggerSpec();
