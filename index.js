@@ -9,6 +9,7 @@ import StudentSignRouter from "./routes/student.routes.js";
 import StudentNotificationRouter from "./routes/student.notification.routes.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "./swagger.json" assert { type: "json" }; // JSON faylni import qilish
+import path from "path";
 
 config();
 
@@ -39,6 +40,7 @@ app.use(StudentNotificationRouter);
 
 // Swaggerni o'rnatish
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use("/swagger", express.static(path.join(__dirname, "public/swagger")));
 
 app.listen(port, () => {
   console.log(`Server started on port: ${port}`);
