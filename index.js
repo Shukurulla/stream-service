@@ -8,7 +8,7 @@ import StreamFeedbackRouter from "./routes/stream.feedback.routes.js";
 import StudentSignRouter from "./routes/student.routes.js";
 import StudentNotificationRouter from "./routes/student.notification.routes.js";
 import swaggerUi from "swagger-ui-express";
-import swaggerDocument from "./swagger.json" with { type: "json" };
+import swaggerDocument from "./swagger.json" assert { type: "json" }; // JSON faylni import qilish
 
 config();
 
