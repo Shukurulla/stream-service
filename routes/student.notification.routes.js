@@ -9,6 +9,7 @@ const router = Router();
  * /notifications:
  *   post:
  *     summary: "Yangi bildirishnomani yaratish"
+ *     tags: [Notification(Student)]
  *     description: "Yangi bildirishnoma yaratish va saqlash"
  *     requestBody:
  *       required: true
@@ -83,6 +84,7 @@ router.post("/notifications", async (req, res) => {
  * /notifications/{studentId}:
  *   get:
  *     summary: "Talabaga tegishli barcha bildirishnomalarni olish va o'rtacha reytingni hisoblash"
+ *     tags: [Notification(Student)]
  *     description: "Talabaga tegishli barcha bildirishnomalarni olish va ularning o'rtacha reytingini hisoblash"
  *     parameters:
  *       - in: path
@@ -153,6 +155,7 @@ router.get("/notifications/:studentId", async (req, res) => {
  * /notifications/notification/{id}:
  *   get:
  *     summary: "ID bo'yicha bitta bildirishnomani olish"
+ *     tags: [Notification(Student)]
  *     description: "ID bo'yicha bitta bildirishnomani olish"
  *     parameters:
  *       - in: path
@@ -195,6 +198,7 @@ router.get("/notifications/notification/:id", async (req, res) => {
  * /notifications/{studentId}/read:
  *   put:
  *     summary: "Talabaga tegishli barcha bildirishnomalarni o'qilgan deb belgilash"
+ *     tags: [Notification(Student)]
  *     description: "Talabaga tegishli barcha bildirishnomalarni o'qilgan deb belgilash"
  *     parameters:
  *       - in: path

@@ -72,19 +72,10 @@ router.post("/create-stream", authMiddleware, async (req, res) => {
     if (!response.data) {
       return res.status(400).json({ error: "Stream yaratilmadi" });
     }
-    const streamSchema = {
-      title: req.body.title,
-      description: req.body.description ? req.body.description : "",
-      classRoom: req.body.classRoom,
-      streamInfo: response.data,
-      teacher: req.body.teacher,
-    };
-    if (!streamSchema) {
-      return res.status(400).json({ error: "Stream yaratishda xatolik ketti" });
-    }
+
     const stream = await streamModel.create({
       ...req.body,
-      streamInfo: streamSchema,
+      streamInfo: response.data,
     });
     // API'dan olingan javobni qaytaramiz
     res.status(200).json(stream);
@@ -121,6 +112,7 @@ router.post("/create-stream", authMiddleware, async (req, res) => {
  * /streams/soon:
  *   get:
  *     summary: "Yaqinda tashkil qilinishi rejalashtirilgan streamlarni olish"
+ *     tags: [Stream]
  *     description: "Barcha streamlarni qaytaradi, agar `isStart` false bo‘lsa"
  *     responses:
  *       200:
@@ -168,6 +160,7 @@ router.get("/streams/soon", async (req, res) => {
  * /streams/preview:
  *   get:
  *     summary: "Tugatilgan streamlarni sanalangan formatda olish"
+ *     tags: [Stream]
  *     description: "Tugatilgan streamlarni yil, oy va kun bo‘yicha guruhlab, sanalangan formatda qaytaradi"
  *     responses:
  *       200:
@@ -244,6 +237,7 @@ router.get("/streams/preview", async (req, res) => {
  * /streams/live:
  *   get:
  *     summary: "Hozirgi faol streamlarni olish"
+ *     tags: [Stream]
  *     description: "Faol streamlarni olish, ya'ni `isStart` qiymati `true` bo‘lgan streamlar."
  *     responses:
  *       200:
@@ -288,6 +282,7 @@ router.get("/streams/live", async (req, res) => {
  * /streams/{id}/start:
  *   put:
  *     summary: "Streamni boshlash"
+ *     tags: [Stream]
  *     description: "Streamni boshlash uchun `isStart` holatini `true` ga o‘zgartiradi. `id` bo‘yicha streamni topadi va yangilaydi."
  *     parameters:
  *       - in: path
@@ -348,6 +343,7 @@ router.put("/streams/:id/start", authMiddleware, async (req, res) => {
  * /streams/{id}/ended:
  *   put:
  *     summary: "Streamni tugatish"
+ *     tags: [Stream]
  *     description: "Streamni tugatadi va `isEnded` holatini `true` ga, `isStart` holatini `false` ga o‘zgartiradi. `id` bo‘yicha streamni topadi va yangilaydi."
  *     parameters:
  *       - in: path
@@ -428,6 +424,7 @@ router.put("/streams/:id/ended", authMiddleware, async (req, res) => {
  * /streams/{id}/viewers:
  *   post:
  *     summary: "Streamga yangi tomoshabin qo'shish"
+ *     tags: [Stream]
  *     description: "Streamga yangi tomoshabin qo'shadi. Agar tomoshabin allaqachon mavjud bo'lsa, xato qaytaradi."
  *     parameters:
  *       - in: path

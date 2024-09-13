@@ -48,9 +48,6 @@ app.use(StudentNotificationRouter);
 // Generate Swagger spec dynamically
 const swaggerSpec = generateSwaggerSpec();
 
-// Swagger spetsifikatsiyasini konsolga chiqarish
-console.log(JSON.stringify(swaggerSpec, null, 2));
-
 // Swaggerni o'rnatish
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
