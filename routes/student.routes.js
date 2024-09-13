@@ -137,7 +137,7 @@ router.post("/student/register", async (req, res) => {
  *       500:
  *         description: "Server xatosi"
  */
-router.post("/student/login", async (req, res) => {
+router.post("/student/login", async (req, res,next) => {
   const { name, password } = req.body;
 
   try {
@@ -163,6 +163,7 @@ router.post("/student/login", async (req, res) => {
     res.status(200).json({ token, student });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
+    next()
   }
 });
 
