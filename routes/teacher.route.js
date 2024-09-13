@@ -190,6 +190,7 @@ router.get("/teacher/me", verifyToken, async (req, res) => {
  *  /teacher/{id}:
  *    get:
  *      summary: Get a teacher by ID
+ *      tags: [Teacher]
  *      description: Retrieve a teacher's information by their unique ID.
  *      parameters:
  *        - name: id
