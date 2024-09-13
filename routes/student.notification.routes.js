@@ -1,6 +1,7 @@
 import { Router } from "express";
 import studentNotificationModel from "../models/student.notification.model.js";
 import authMiddleware from "../middleware/auth.middleware.js";
+import Stream from "../models/stream.model.js";
 
 const router = Router();
 
@@ -67,6 +68,10 @@ const router = Router();
 router.post("/notifications", async (req, res) => {
   try {
     const notificationData = req.body;
+    const stream = Stream.findById(notificationData.stream.streamId);
+    if (!stream) {
+      return res.json({ error: "Bunday stream topilmadu" });
+    }
 
     // Create and save the new notification
     const newNotification = await studentNotificationModel.create(

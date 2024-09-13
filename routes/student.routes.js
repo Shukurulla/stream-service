@@ -3,6 +3,7 @@ import studentModel from "../models/student.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { verifyToken } from "../middleware/verifyToken.middleware.js";
+import groupModel from "../models/group.model.js";
 
 const router = express.Router();
 
@@ -62,11 +63,15 @@ const router = express.Router();
  *         description: "Server xatosi"
  */
 router.post("/student/register", async (req, res) => {
-  const { name, password, group, kurs, profileImage } = req.body;
+  const { name, password, group, phone, kurs, profileImage } = req.body;
 
   try {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+    const findGroup = await groupModel.find({ name: group });
+    if (findGroup.length !== 1) {
+      return res.json({ error: "Bunday gruppa mavjud emas" });
+    }
 
     // Create new student
     const newStudent = new studentModel({
@@ -75,6 +80,7 @@ router.post("/student/register", async (req, res) => {
       originalPassword: password,
       group,
       kurs,
+      phone,
       profileImage,
     });
 
@@ -172,7 +178,7 @@ router.post("/student/login", async (req, res, next) => {
 
 /**
  * @swagger
- * /api/student/me:
+ * /student/me:
  *   get:
  *     summary: Talaba ma'lumotlarini token orqali olish
  *     tags: [Student]
@@ -287,7 +293,7 @@ router.put("/student/profile", verifyToken, async (req, res) => {
  */
 router.delete("/student/profile", verifyToken, async (req, res) => {
   try {
-    const student = await studentModel.findByIdAndDelete(req.user.userId);
+    const student = await studentModel.findByIdAndDelete(req.user.id);
 
     if (!student) {
       return res.status(404).json({ message: "Student not found" });

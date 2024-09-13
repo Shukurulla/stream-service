@@ -3,6 +3,7 @@ import streamModel from "../models/stream.model.js";
 import axios from "axios";
 import authMiddleware from "../middleware/auth.middleware.js";
 import { config } from "dotenv";
+import groupModel from "../models/group.model.js";
 
 const router = express.Router();
 config();
@@ -55,6 +56,11 @@ const apiVideoToken = process.env.API_VIDEO_KEY;
  */
 router.post("/create-stream", authMiddleware, async (req, res) => {
   try {
+    const { group } = req.body;
+    const findGroup = await groupModel.find({ name: group });
+    if (findGroup.length !== 1) {
+      return res.json({ error: "Bunday gruppa mavjud emas" });
+    }
     // API so'rovi yuboramiz
     const response = await axios.post(
       "https://ws.api.video/live-streams",
@@ -143,8 +149,12 @@ router.post("/create-stream", authMiddleware, async (req, res) => {
  */
 router.get("/streams/soon", async (req, res) => {
   try {
-    const streams = await streamModel.find({ isStart: false });
-    if (!streams) {
+    const allStreams = await streamModel.find();
+    const compareBroadCasting = allStreams.filter(
+      (c) => c.streamInfo.broadcasting == false
+    );
+    const streams = compareBroadCasting?.filter((c) => c.isEnded == false);
+    if (streams.length == 0) {
       return res.json({
         error: "Yaqinda tashkil qilinishi rejalashtirilgan streamlar topilmadi",
       });
@@ -199,36 +209,36 @@ router.get("/streams/soon", async (req, res) => {
  */
 router.get("/streams/previous", async (req, res) => {
   try {
-    const streams = await streamModel.aggregate([
-      {
-        $match: { isEnded: true },
-      },
-      {
-        $sort: { endedTime: 1 },
-      },
-      {
-        $group: {
-          _id: {
-            year: { $year: "$endedTime" },
-            month: { $month: "$endedTime" },
-            day: { $dayOfMonth: "$endedTime" },
-          },
-          streams: { $push: "$$ROOT" },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          date: { $dateToString: { format: "%Y-%m-%d", date: "$_id" } },
-          streams: 1,
-        },
-      },
-    ]);
+    const currentTime = new Date();
 
+    const streams = await streamModel
+      .find({ endedTime: { $exists: true, $ne: null } })
+      .sort({ endedTime: -1 }) // endedTime bo'yicha teskari tartibda saralash
+      .lean(); // Performance uchun lean() ishlatamiz
+
+    // endedTime ni Date obyektiga aylantirish va farqni hisoblash
+    const streamsWithTimeDiff = streams.map((stream) => {
+      const endedTime = new Date(stream.endedTime);
+      const timeDiff = Math.abs(currentTime - endedTime);
+      return { ...stream, timeDiff };
+    });
+
+    // timeDiff bo'yicha saralash
+    streamsWithTimeDiff.sort((a, b) => a.timeDiff - b.timeDiff);
+
+    res.json(streamsWithTimeDiff);
+  } catch (error) {
+    console.error("Xatolik yuz berdi:", error);
+    res.status(500).json({ message: "Serverda xatolik yuz berdi" });
+  }
+});
+
+router.get("/streams/all", async (req, res) => {
+  try {
+    const streams = await streamModel.find();
     res.json(streams);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error fetching streams" });
+    res.json({ error: error.message });
   }
 });
 
@@ -423,6 +433,94 @@ router.put("/streams/:id/ended", authMiddleware, async (req, res) => {
 
 /**
  * @swagger
+ * /streams/{id}/edit:
+ *   put:
+ *     summary: Stream ma'lumotlarini yangilash
+ *     description: Berilgan ID bo'yicha stream ma'lumotlarini yangilash.
+ *     tags:
+ *       - Streams
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Streamning ID raqami
+ *         schema:
+ *           type: string
+ *       - in: body
+ *         name: body
+ *         description: Yangilanishi kerak bo'lgan stream ma'lumotlari
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             title:
+ *               type: string
+ *               description: Streamning yangi nomi
+ *             description:
+ *               type: string
+ *               description: Stream haqida yangi tavsif
+ *             planStream:
+ *               type: string
+ *               format: date-time
+ *               description: Streamning rejalashtirilgan vaqti
+ *             classRoom:
+ *               type: string
+ *               description: O‘quv xonasi raqami
+ *     responses:
+ *       200:
+ *         description: Stream muvaffaqiyatli yangilandi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                   description: Streamning ID raqami
+ *                 title:
+ *                   type: string
+ *                   description: Streamning nomi
+ *                 description:
+ *                   type: string
+ *                   description: Stream haqida tavsif
+ *                 planStream:
+ *                   type: string
+ *                   format: date-time
+ *                   description: Streamning rejalashtirilgan vaqti
+ *                 classRoom:
+ *                   type: string
+ *                   description: O‘quv xonasi raqami
+ *       400:
+ *         description: Kiritilgan ID raqami noto'g'ri
+ *       404:
+ *         description: Stream topilmadi
+ *       500:
+ *         description: Serverda xatolik yuz berdi
+ */
+
+router.put("/streams/:id/edit", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const stream = await streamModel.findByIdAndUpdate(
+      id,
+      {
+        $set: req.body,
+      },
+      { new: true }
+    );
+
+    if (!stream) {
+      return res.json({ error: "Stream ozgartirilmadi" });
+    }
+    const currentStream = await streamModel.findById(id);
+    res.json(currentStream);
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
  * /streams/{id}/viewers:
  *   post:
  *     summary: "Streamga yangi tomoshabin qo'shish"
@@ -501,7 +599,7 @@ router.put("/streams/:id/ended", authMiddleware, async (req, res) => {
 router.post("/streams/:id/viewers", async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, userId, profileImage, science } = req.body; // Viewer data
+    const { name, userId, profileImage, science } = req.body;
 
     // Streamni topish
     const stream = await streamModel.findById(id);
@@ -514,7 +612,7 @@ router.post("/streams/:id/viewers", async (req, res) => {
       (viewer) => viewer.id === userId
     );
 
-    if (isViewerExists.length > 0) {
+    if (isViewerExists) {
       return res.status(409).json({ message: "Tomoshabin allaqachon mavjud" });
     }
 
@@ -539,7 +637,7 @@ router.post("/streams/:id/viewers", async (req, res) => {
 
 /**
  * @swagger
- * /stream/{id}:
+ * /stream/{id}/delete:
  *   delete:
  *     summary: Delete stream
  *     tags: [Stream]
@@ -562,9 +660,9 @@ router.post("/streams/:id/viewers", async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.delete("/stream/:id", authMiddleware, async (req, res) => {
+router.delete("/stream/:id/delete", authMiddleware, async (req, res) => {
   try {
-    const stream = await streamModel.findByIdAndDelete(req.params.userId);
+    const stream = await streamModel.findByIdAndDelete(req.params.id);
 
     if (!stream) {
       return res.status(404).json({ message: "Stream not found" });

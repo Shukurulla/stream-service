@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 
 const studentNotificationModel = mongoose.model("studentNotification", {
   stream: {
+    streamId: {
+      type: mongoose.Types.ObjectId,
+      required: true,
+    },
     title: {
       // Stream Title
       type: String,

@@ -15,8 +15,7 @@ export const initTokens = async () => {
 
     accessToken = response.data.access_token;
     refreshToken = response.data.refresh_token;
-
-    console.log("Tokens initialized", { accessToken, refreshToken }); // Bu bilan tokenlarni ko'rishingiz mumkin
+    // Bu bilan tokenlarni ko'rishingiz mumkin
   } catch (error) {
     console.error("Tokenlarni olishda xatolik:", error.message);
   }
@@ -40,10 +39,6 @@ export const tokenMiddleware = async (req, res, next) => {
     req.headers["Authorization"] = `Bearer ${accessToken}`;
     next();
   } catch (error) {
-    console.error(
-      "Token yangilashda xatolik:",
-      error.response ? error.response.data : error.message
-    );
     res.status(401).json({
       error: "Token yangilashda xatolik",
       details: error.response ? error.response.data : error.message,
