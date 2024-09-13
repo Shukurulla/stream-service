@@ -24,9 +24,9 @@ const router = express.Router();
  *               password:
  *                 type: string
  *                 description: "O'qituvchining paroli"
- *               role:
+ *               science:
  *                 type: string
- *                 description: "O'qituvchining roli"
+ *                 description: "O'qituvchining fani"
  *               profileImage:
  *                 type: string
  *                 description: "O'qituvchining profil rasmi URL"
