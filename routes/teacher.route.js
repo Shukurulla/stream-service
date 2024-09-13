@@ -187,10 +187,10 @@ router.get("/teacher/me", verifyToken, async (req, res) => {
 
 /**
  * @swagger
- * /student/profile:
+ * /teacher/profile:
  *   put:
- *     summary: Update student profile with jwt token
- *     tags: [Student]
+ *     summary: Update teacher profile with jwt token
+ *     tags: [Teacher]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -204,13 +204,13 @@ router.get("/teacher/me", verifyToken, async (req, res) => {
  *                 type: string
  *               password:
  *                 type: string
- *               kurs:
+ *               science:
  *                 type: string
  *               profileImage:
  *                 type: string
  *     responses:
  *       200:
- *         description: Student profile updated successfully
+ *         description: Teacher profile updated successfully
  *       401:
  *         description: Unauthorized
  *       403:
@@ -218,24 +218,57 @@ router.get("/teacher/me", verifyToken, async (req, res) => {
  */
 router.put("/teacher/profile", verifyToken, async (req, res) => {
   try {
-    const student = await studentModel.findById(req.user.id);
+    const teacher = await teacherModel.findById(req.user.userId);
 
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
     }
 
     if (req.body.password) {
-      student.password = await bcrypt.hash(req.body.password, 10);
-      student.originalPassword = req.body.password;
+      teacher.password = await bcrypt.hash(req.body.password, 10);
+      teacher.originalPassword = req.body.password;
     }
 
-    student.name = req.body.name || student.name;
-    student.kurs = req.body.kurs || student.kurs;
-    student.profileImage = req.body.profileImage || student.profileImage;
+    teacher.name = req.body.name || teacher.name;
+    teacher.science = req.body.science || teacher.science;
+    teacher.profileImage = req.body.profileImage || teacher.profileImage;
 
-    await student.save();
-    res.status(200).json({ message: "Student profile updated successfully" });
+    await teacher.save();
+    res.status(200).json({ message: "Teacher profile updated successfully" });
   } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/**
+ * @swagger
+ * /teacher/profile:
+ *   delete:
+ *     summary: Delete teacher profile
+ *     tags: [Teacher]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Teacher profile deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Teacher not found
+ *       500:
+ *         description: Server error
+ */
+router.delete("/teacher/profile", verifyToken, async (req, res) => {
+  try {
+    const teacher = await teacherModel.findByIdAndDelete(req.user.userId);
+
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    res.status(200).json({ message: "Teacher profile deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting teacher profile:", error);
     res.status(500).json({ message: "Server error" });
   }
 });

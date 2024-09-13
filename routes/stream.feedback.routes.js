@@ -1,5 +1,6 @@
 import express from "express";
 import authMiddleware from "../middleware/auth.middleware.js";
+import { verifyToken } from "../middleware/verifyToken.middleware.js";
 import streamModel from "../models/stream.model.js";
 const router = express.Router();
 
@@ -49,8 +50,47 @@ const router = express.Router();
  *       500:
  *         description: Server xatosi
  */
-router.post("/stream/:id/feedback", authMiddleware, async (req, res) => {
-  // ... (mavjud kod)
+router.post("/stream/:id/feedback", verifyToken, async (req, res) => {
+  try {
+    const {
+      userId,
+      userName,
+      commentText,
+      teacherName,
+      profileImage,
+      science,
+      rate,
+      feedback,
+    } = req.body;
+    const { id } = req.params;
+
+    // Stream topish
+    const stream = await streamModel.findById(id);
+    if (!stream) {
+      return res.status(404).json({ message: "Stream not found" });
+    }
+
+    // Yangi feedback yaratish
+    const newFeedback = new feedbackModel({
+      userId,
+      userName,
+      commentText,
+      teacherName,
+      profileImage,
+      science,
+      rate,
+      feedback,
+    });
+
+    await newFeedback.save();
+    res.status(200).json({
+      message: "Comment and rating successfully added",
+      feedback: newFeedback,
+    });
+  } catch (error) {
+    console.error("Error adding feedback:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 /**
@@ -88,9 +128,31 @@ router.post("/stream/:id/feedback", authMiddleware, async (req, res) => {
  *         description: Server xatosi
  */
 router.get("/stream/:id/feedbacks", async (req, res) => {
-  // ... (mavjud kod)
-});
+  try {
+    const { id } = req.params;
 
+    // Stream topish
+    const stream = await streamModel.findById(id);
+    if (!stream) {
+      return res.status(404).json({ message: "Stream not found" });
+    }
+
+    // Feedbacklarni olish
+    const feedbacks = await feedbackModel.find({ streamId: id });
+    const averageRating =
+      feedbacks.reduce((acc, feedback) => acc + feedback.rate, 0) /
+      feedbacks.length;
+
+    res.status(200).json({
+      message: "Feedbacks successfully retrieved",
+      feedbacks,
+      averageRating,
+    });
+  } catch (error) {
+    console.error("Error retrieving feedbacks:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 /**
  * @swagger
  * /streams/{streamId}/read:
@@ -114,8 +176,24 @@ router.get("/stream/:id/feedbacks", async (req, res) => {
  *       500:
  *         description: Server xatosi
  */
-router.put("/streams/:streamId/read", authMiddleware, async (req, res) => {
-  // ... (mavjud kod)
+router.put("/streams/:streamId/read", verifyToken, async (req, res) => {
+  try {
+    const { streamId } = req.params;
+
+    // Stream topish
+    const stream = await streamModel.findById(streamId);
+    if (!stream) {
+      return res.status(404).json({ message: "Stream not found" });
+    }
+
+    // Feedbacklarni o'qilgan deb belgilash
+    await feedbackModel.updateMany({ streamId }, { read: true });
+
+    res.status(200).json({ message: "All feedbacks marked as read" });
+  } catch (error) {
+    console.error("Error marking feedbacks as read:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 /**
@@ -144,5 +222,45 @@ router.put("/streams/:streamId/read", authMiddleware, async (req, res) => {
  *         read:
  *           type: boolean
  */
+
+/**
+ * @swagger
+ * /feedback/{id}:
+ *   delete:
+ *     summary: Delete feedback
+ *     tags: [Stream Feedback]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Feedback ID
+ *         schema:
+ *           type: string
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Feedback deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Feedback not found
+ *       500:
+ *         description: Server error
+ */
+router.delete("/feedback/:id", verifyToken, async (req, res) => {
+  try {
+    const feedback = await feedbackModel.findByIdAndDelete(req.params.id);
+
+    if (!feedback) {
+      return res.status(404).json({ message: "Feedback not found" });
+    }
+
+    res.status(200).json({ message: "Feedback deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting feedback:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 export default router;

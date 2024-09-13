@@ -535,4 +535,44 @@ router.post("/streams/:id/viewers", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /stream/{id}:
+ *   delete:
+ *     summary: Delete stream
+ *     tags: [Stream]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Stream ID
+ *         schema:
+ *           type: string
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Stream deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Stream not found
+ *       500:
+ *         description: Server error
+ */
+router.delete("/stream/:id", authMiddleware, async (req, res) => {
+  try {
+    const stream = await streamModel.findByIdAndDelete(req.params.userId);
+
+    if (!stream) {
+      return res.status(404).json({ message: "Stream not found" });
+    }
+
+    res.status(200).json({ message: "Stream deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting stream:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 export default router;

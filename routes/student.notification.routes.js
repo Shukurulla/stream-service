@@ -233,4 +233,46 @@ router.put(
   }
 );
 
+/**
+ * @swagger
+ * /notification/{id}:
+ *   delete:
+ *     summary: Delete notification
+ *     tags: [Notification(Student)]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Notification ID
+ *         schema:
+ *           type: string
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Notification deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Notification not found
+ *       500:
+ *         description: Server error
+ */
+router.delete("/notification/:id", authMiddleware, async (req, res) => {
+  try {
+    const notification = await studentNotificationModel.findByIdAndDelete(
+      req.params.id
+    );
+
+    if (!notification) {
+      return res.status(404).json({ message: "Notification not found" });
+    }
+
+    res.status(200).json({ message: "Notification deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting notification:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 export default router;
