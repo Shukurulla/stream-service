@@ -24,9 +24,7 @@ export const initTokens = async () => {
 // Token yangilovchi middleware
 export const tokenMiddleware = async (req, res, next) => {
   try {
-    // Access token borligini va uning muddati tugaganligini tekshirish
     if (!accessToken) {
-      // Avval refresh token orqali yangilash jarayonini boshlaymiz
       const refreshResponse = await axios.post(
         "https://sandbox.api.video/auth/refresh",
         {
@@ -34,18 +32,20 @@ export const tokenMiddleware = async (req, res, next) => {
         }
       );
 
-      // Yangi tokenlar olish
       accessToken = refreshResponse.data.access_token;
       refreshToken = refreshResponse.data.refresh_token;
     }
 
-    // Access tokenni so'rovga qo'shish
     req.headers["Authorization"] = `Bearer ${accessToken}`;
-
-    // Keyingi middleware yoki route ga o'tkazish
     next();
   } catch (error) {
-    // Agar refresh token ham o'zgarisa, 401 xatolikni chiqarish
-    res.status(401).json({ error: "Token yangilashda xatolik" });
+    console.error(
+      "Token yangilashda xatolik:",
+      error.response ? error.response.data : error.message
+    );
+    res.status(401).json({
+      error: "Token yangilashda xatolik",
+      details: error.response ? error.response.data : error.message,
+    });
   }
 };
