@@ -10,6 +10,7 @@ import StudentSignRouter from "./routes/student.routes.js";
 import StudentNotificationRouter from "./routes/student.notification.routes.js";
 import swaggerUi from "swagger-ui-express";
 import { generateSwaggerSpec } from "./swagger.js";
+import GroupRouter from "./routes/group.routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,6 +45,7 @@ app.use(StreamRouter);
 app.use(StreamFeedbackRouter);
 app.use(StudentSignRouter);
 app.use(StudentNotificationRouter);
+app.use(GroupRouter);
 
 // Generate Swagger spec dynamically
 const swaggerSpec = generateSwaggerSpec();

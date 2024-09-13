@@ -39,10 +39,6 @@ const streamSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  isStart: {
-    type: Boolean,
-    default: false,
-  },
   isEnded: {
     type: Boolean,
     default: false,
@@ -51,6 +47,10 @@ const streamSchema = new mongoose.Schema({
     type: Object,
   },
   group: {
+    type: String,
+    required: true,
+  },
+  science: {
     type: String,
     required: true,
   },

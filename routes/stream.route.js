@@ -270,8 +270,10 @@ router.get("/streams/preview", async (req, res) => {
  */
 router.get("/streams/live", async (req, res) => {
   try {
-    const streams = await streamModel.find({ isStart: true });
-    res.json({ streams });
+    const streams = await streamModel.find({
+      streamInfo: { broadcasting: true },
+    });
+    res.json(streams);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -404,7 +406,6 @@ router.put("/streams/:id/ended", authMiddleware, async (req, res) => {
       id,
       {
         isEnded: true,
-        isStart: false,
       },
       { new: true }
     ); // Yangilangan hujjatni qaytarish
