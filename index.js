@@ -8,9 +8,10 @@ import StreamRouter from "./routes/stream.route.js";
 import StreamFeedbackRouter from "./routes/stream.feedback.routes.js";
 import StudentSignRouter from "./routes/student.routes.js";
 import StudentNotificationRouter from "./routes/student.notification.routes.js";
+import GroupRouter from "./routes/group.routes.js";
 import swaggerUi from "swagger-ui-express";
 import { generateSwaggerSpec } from "./swagger.js";
-import GroupRouter from "./routes/group.routes.js";
+import { tokenMiddleware, initTokens } from "./middleware/tokenMiddleware.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,6 +26,12 @@ app.use(
 );
 
 app.use(express.json());
+
+// Dastlabki tokenlarni yuklash
+initTokens();
+
+// Token middleware'ni ulash
+app.use(tokenMiddleware);
 
 const port = process.env.PORT || 3000;
 const mongo_uri = process.env.MONGO_URI;

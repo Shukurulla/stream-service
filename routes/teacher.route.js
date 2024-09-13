@@ -187,6 +187,68 @@ router.get("/teacher/me", verifyToken, async (req, res) => {
 
 /**
  * @swagger
+ *  /teacher/{id}:
+ *    get:
+ *      summary: Get a teacher by ID
+ *      description: Retrieve a teacher's information by their unique ID.
+ *      parameters:
+ *        - name: id
+ *          in: path
+ *          required: true
+ *          description: The unique ID of the teacher to fetch.
+ *          schema:
+ *            type: string
+ *      responses:
+ *        '200':
+ *          description: Successfully retrieved the teacher
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  teacher:
+ *                    type: object
+ *                    properties:
+ *                      _id:
+ *                        type: string
+ *                        description: The unique ID of the teacher
+ *                      name:
+ *                        type: string
+ *                        description: The name of the teacher
+ *                      role:
+ *                        type: string
+ *                        description: The role of the teacher
+ *                      # Add other teacher properties here as needed
+ *        '400':
+ *          description: Teacher not found or another error occurred
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
+ *                    description: Error message
+ */
+router.get("/teacher/:id", async (req, res) => {
+  try {
+    const teacher = await teacherModel.findById(req.params.id);
+    if (!teacher) {
+      return res.status(400).json({ error: "Bunday teacher topilmadi" });
+    }
+    const token = jwt.sign(
+      { userId: teacher._id, role: teacher.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "30d" }
+    );
+    res.json({ token, teacher });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
  * /teacher/profile:
  *   put:
  *     summary: Update teacher profile with jwt token
