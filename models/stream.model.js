@@ -33,7 +33,7 @@ const streamSchema = new mongoose.Schema({
   },
   planStream: {
     type: Date, // Streamingni rejalashtirish uchun sana va vaqt
-    required: true,
+    default: new Date(),
   },
   classRoom: {
     type: String,
@@ -42,6 +42,9 @@ const streamSchema = new mongoose.Schema({
   isEnded: {
     type: Boolean,
     default: false,
+  },
+  endedTime: {
+    type: String,
   },
   streamInfo: {
     type: Object,

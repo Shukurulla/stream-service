@@ -157,7 +157,7 @@ router.get("/streams/soon", async (req, res) => {
 
 /**
  * @swagger
- * /streams/preview:
+ * /streams/previous:
  *   get:
  *     summary: "Tugatilgan streamlarni sanalangan formatda olish"
  *     tags: [Stream]
@@ -197,21 +197,21 @@ router.get("/streams/soon", async (req, res) => {
  *       500:
  *         description: "Server xatosi"
  */
-router.get("/streams/preview", async (req, res) => {
+router.get("/streams/previous", async (req, res) => {
   try {
-    const streams = await Stream.aggregate([
+    const streams = await streamModel.aggregate([
       {
         $match: { isEnded: true },
       },
       {
-        $sort: { planStream: 1 },
+        $sort: { endedTime: 1 },
       },
       {
         $group: {
           _id: {
-            year: { $year: "$planStream" },
-            month: { $month: "$planStream" },
-            day: { $dayOfMonth: "$planStream" },
+            year: { $year: "$endedTime" },
+            month: { $month: "$endedTime" },
+            day: { $dayOfMonth: "$endedTime" },
           },
           streams: { $push: "$$ROOT" },
         },
@@ -406,6 +406,7 @@ router.put("/streams/:id/ended", authMiddleware, async (req, res) => {
       id,
       {
         isEnded: true,
+        endedTime: new Date(),
       },
       { new: true }
     ); // Yangilangan hujjatni qaytarish
@@ -422,7 +423,7 @@ router.put("/streams/:id/ended", authMiddleware, async (req, res) => {
 
 /**
  * @swagger
- * /streams/{id}/previous:
+ * /streams/{id}/viewers:
  *   post:
  *     summary: "Streamga yangi tomoshabin qo'shish"
  *     tags: [Stream]
@@ -497,7 +498,7 @@ router.put("/streams/:id/ended", authMiddleware, async (req, res) => {
  *       500:
  *         description: "Server xatosi"
  */
-router.post("/streams/:id/previous", async (req, res) => {
+router.post("/streams/:id/viewers", async (req, res) => {
   try {
     const { id } = req.params;
     const { name, userId, profileImage, science } = req.body; // Viewer data
