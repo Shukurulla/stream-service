@@ -422,7 +422,7 @@ router.put("/streams/:id/ended", authMiddleware, async (req, res) => {
 
 /**
  * @swagger
- * /streams/{id}/viewers:
+ * /streams/{id}/previous:
  *   post:
  *     summary: "Streamga yangi tomoshabin qo'shish"
  *     tags: [Stream]
@@ -497,7 +497,7 @@ router.put("/streams/:id/ended", authMiddleware, async (req, res) => {
  *       500:
  *         description: "Server xatosi"
  */
-router.post("/streams/:id/viewers", async (req, res) => {
+router.post("/streams/:id/previous", async (req, res) => {
   try {
     const { id } = req.params;
     const { name, userId, profileImage, science } = req.body; // Viewer data

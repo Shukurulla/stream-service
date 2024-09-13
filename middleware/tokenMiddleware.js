@@ -4,18 +4,19 @@ import axios from "axios";
 let accessToken = null;
 let refreshToken = null;
 
-// Tokenlarni boshlang'ich holatda yuklash uchun funksiya
 export const initTokens = async () => {
   try {
     const response = await axios.post(
       "https://sandbox.api.video/auth/api-key",
       {
-        apiKey: process.env.API_VIDEO_KEY, // API kalitini bu yerda kiritasiz
+        apiKey: process.env.API_VIDEO_KEY,
       }
     );
 
     accessToken = response.data.access_token;
     refreshToken = response.data.refresh_token;
+
+    console.log("Tokens initialized", { accessToken, refreshToken }); // Bu bilan tokenlarni ko'rishingiz mumkin
   } catch (error) {
     console.error("Tokenlarni olishda xatolik:", error.message);
   }
