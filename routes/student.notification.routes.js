@@ -130,7 +130,7 @@ router.get("/notifications/:studentId", async (req, res) => {
     if (notifications.length === 0) {
       return res
         .status(404)
-        .json({ message: "No notifications found for this student." });
+        .json({ message: "Bu studentning notificationlari mavjud emas" });
     }
 
     // Calculate the average rating for all notifications

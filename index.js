@@ -31,7 +31,7 @@ app.use(express.json());
 initTokens();
 
 // Token middleware'ni ulash
-app.use(tokenMiddleware);
+// app.use(tokenMiddleware);
 
 const port = process.env.PORT || 3000;
 const mongo_uri = process.env.MONGO_URI;
