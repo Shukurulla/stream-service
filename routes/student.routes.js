@@ -245,7 +245,7 @@ router.get("/student/me", verifyToken, async (req, res) => {
  */
 router.put("/student/profile", verifyToken, async (req, res) => {
   try {
-    const student = await studentModel.findById(req.user.id);
+    const student = await studentModel.findById(req.user.userId);
 
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
@@ -261,7 +261,9 @@ router.put("/student/profile", verifyToken, async (req, res) => {
     student.profileImage = req.body.profileImage || student.profileImage;
 
     await student.save();
-    res.status(200).json({ message: "Student profile updated successfully" });
+    res
+      .status(200)
+      .json({ message: "Student profile updated successfully", student });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }

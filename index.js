@@ -12,7 +12,7 @@ import GroupRouter from "./routes/group.routes.js";
 import swaggerUi from "swagger-ui-express";
 import { generateSwaggerSpec } from "./swagger.js";
 import { tokenMiddleware, initTokens } from "./middleware/tokenMiddleware.js";
-
+import ScoreRouter from "./routes/student.score.routes.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -53,6 +53,7 @@ app.use(StreamFeedbackRouter);
 app.use(StudentSignRouter);
 app.use(StudentNotificationRouter);
 app.use(GroupRouter);
+app.use(ScoreRouter);
 
 // Generate Swagger spec dynamically
 const swaggerSpec = generateSwaggerSpec();
