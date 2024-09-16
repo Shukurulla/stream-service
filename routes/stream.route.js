@@ -4,6 +4,7 @@ import axios from "axios";
 import authMiddleware from "../middleware/auth.middleware.js";
 import { config } from "dotenv";
 import teacherModel from "../models/teacher.model.js";
+import { verifyToken } from "../middleware/verifyToken.middleware.js";
 
 const router = express.Router();
 config();
@@ -227,31 +228,17 @@ router.get("/my-streams/:id", authMiddleware, async (req, res) => {
  *       500:
  *         description: "Server xatosi"
  */
-router.get("/streams/previous", async (req, res) => {
+router.get("/streams/previous", verifyToken, async (req, res) => {
+  const { userId } = req.user;
   try {
-    const streams = await streamModel.aggregate([
-      { $match: { isEnded: true } },
-      { $sort: { planStream: 1 } },
-      {
-        $group: {
-          _id: {
-            year: { $year: "$planStream" },
-            month: { $month: "$planStream" },
-            day: { $dayOfMonth: "$planStream" },
-          },
-          streams: { $push: "$$ROOT" },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          date: { $dateToString: { format: "%Y-%m-%d", date: "$_id" } },
-          streams: 1,
-        },
-      },
-    ]);
+    const streams = await streamModel.find();
+    const othersStreams = streams.filter((c) => c.teacher.id !== userId);
 
-    res.json(streams);
+    res.json(
+      othersStreams.sort(
+        (a, b) => new Date(b.planStream) - new Date(a.planStream)
+      )
+    );
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error fetching streams" });
