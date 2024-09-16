@@ -9,6 +9,10 @@ const studentModel = mongoose.model("Student", {
     type: String,
     requried: true,
   },
+  phone: {
+    type: String,
+    required: true,
+  },
   originalPassword: {
     type: String,
     required: true,

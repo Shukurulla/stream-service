@@ -148,7 +148,8 @@ router.get("/get-group/:id", async (req, res) => {
 router.put("/group/:id/edit", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const group = await groupModel.findByIdAndUpdate(id, req.body);
+    await groupModel.findByIdAndUpdate(id, req.body);
+    const group = await groupModel.findById(id);
     if (!group) {
       return res.status(400).json({ error: "Gruppa ozgartirilmadi" });
     }

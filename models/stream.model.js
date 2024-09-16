@@ -3,15 +3,12 @@ import mongoose from "mongoose";
 const ratingSchema = new mongoose.Schema({
   teacher: {
     name: { type: String, required: true },
-    profileImage: { type: String, required: true },
-    science: { type: String, required: true },
   },
   rate: { type: Number, min: 1, max: 5, required: true },
   feedback: { type: String },
   date: { type: Date, default: Date.now },
   read: { type: Boolean, default: false },
 });
-
 const commentSchema = new mongoose.Schema({
   user: {
     id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -32,8 +29,8 @@ const streamSchema = new mongoose.Schema({
     trim: true,
   },
   planStream: {
-    type: Date, // Streamingni rejalashtirish uchun sana va vaqt
-    required: true,
+    type: Date,
+    default: new Date(),
   },
   classRoom: {
     type: String,
@@ -42,6 +39,9 @@ const streamSchema = new mongoose.Schema({
   isEnded: {
     type: Boolean,
     default: false,
+  },
+  endedTime: {
+    type: String,
   },
   streamInfo: {
     type: Object,
@@ -88,7 +88,6 @@ const streamSchema = new mongoose.Schema({
     },
   ],
 });
-
 const Stream = mongoose.model("Stream", streamSchema);
 
 export default Stream;
