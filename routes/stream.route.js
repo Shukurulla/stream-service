@@ -3,6 +3,7 @@ import streamModel from "../models/stream.model.js";
 import axios from "axios";
 import authMiddleware from "../middleware/auth.middleware.js";
 import { config } from "dotenv";
+import teacherModel from "../models/teacher.model.js";
 
 const router = express.Router();
 config();
@@ -155,9 +156,38 @@ router.get("/streams/soon", async (req, res) => {
   }
 });
 
+router.get("/streams/all", async (req, res) => {
+  try {
+    const streams = await streamModel.find();
+    res.json(streams);
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
+
+router.get("/my-streams/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const teacher = await teacherModel.findById(id);
+    if (!teacher) {
+      return res.json({ error: "Bunday id ga mos teacher topilmadi" });
+    }
+    const streams = await streamModel.find();
+    const uniqueStreams = streams.filter((c) => c.teacher.id == id);
+    const soon = uniqueStreams.filter(
+      (c) => c.streamInfo.broadcasting === false
+    );
+    const live = uniqueStreams.filter((c) => c.streamInfo.broadcasting == true);
+    const previous = uniqueStreams.filter((c) => (c.isEnded = true));
+    res.json({ soon, live, previous });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 /**
  * @swagger
- * /streams/preview:
+ * /streams/previous:
  *   get:
  *     summary: "Tugatilgan streamlarni sanalangan formatda olish"
  *     tags: [Stream]
@@ -197,15 +227,11 @@ router.get("/streams/soon", async (req, res) => {
  *       500:
  *         description: "Server xatosi"
  */
-router.get("/streams/preview", async (req, res) => {
+router.get("/streams/previous", async (req, res) => {
   try {
-    const streams = await Stream.aggregate([
-      {
-        $match: { isEnded: true },
-      },
-      {
-        $sort: { planStream: 1 },
-      },
+    const streams = await streamModel.aggregate([
+      { $match: { isEnded: true } },
+      { $sort: { planStream: 1 } },
       {
         $group: {
           _id: {

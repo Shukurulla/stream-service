@@ -17,9 +17,6 @@ const studentModel = mongoose.model("Student", {
     type: String,
     required: true,
   },
-  kurs: {
-    type: String,
-  },
   profileImage: {
     type: String,
     required: true,

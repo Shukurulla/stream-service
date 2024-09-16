@@ -62,7 +62,7 @@ const router = express.Router();
  *         description: "Server xatosi"
  */
 router.post("/student/register", async (req, res) => {
-  const { name, password, group, kurs, profileImage } = req.body;
+  const { name, password, group, profileImage } = req.body;
 
   try {
     // Hash the password
@@ -74,7 +74,6 @@ router.post("/student/register", async (req, res) => {
       password: hashedPassword,
       originalPassword: password,
       group,
-      kurs,
       profileImage,
     });
 

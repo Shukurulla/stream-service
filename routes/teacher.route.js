@@ -281,28 +281,32 @@ router.get("/teacher/:id", async (req, res) => {
  */
 router.put("/teacher/profile", verifyToken, async (req, res) => {
   try {
+    const updates = {};
+
+    // Agar parol berilgan bo'lsa, uni yangilash
+    if (req.body.password) {
+      updates.password = await bcrypt.hash(req.body.password, 10);
+      updates.originalPassword = req.body.password;
+    }
+
+    // Faqat berilgan maydonlarni yangilash uchun $set operatoridan foydalanish
+    if (req.body.name) updates.name = req.body.name;
+    if (req.body.science) updates.science = req.body.science;
+    if (req.body.profileImage) updates.profileImage = req.body.profileImage;
+
+    const result = await teacherModel.findByIdAndUpdate(
+      { _id: req.user.userId },
+      { $set: updates }
+    );
+
     const teacher = await teacherModel.findById(req.user.userId);
 
-    if (!teacher) {
-      return res.status(404).json({ message: "Teacher not found" });
-    }
-
-    if (req.body.password) {
-      teacher.password = await bcrypt.hash(req.body.password, 10);
-      teacher.originalPassword = req.body.password;
-    }
-
-    teacher.name = req.body.name || teacher.name;
-    teacher.science = req.body.science || teacher.science;
-    teacher.profileImage = req.body.profileImage || teacher.profileImage;
-
-    await teacher.save();
-    res.status(200).json({ message: "Teacher profile updated successfully" });
+    res.status(200).json(teacher);
   } catch (error) {
+    console.error(error); // Xatolikni konsolga chiqarish
     res.status(500).json({ message: "Server error" });
   }
 });
-
 /**
  * @swagger
  * /teacher/profile:
