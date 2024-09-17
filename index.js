@@ -13,6 +13,7 @@ import swaggerUi from "swagger-ui-express";
 import { generateSwaggerSpec } from "./swagger.js";
 import { tokenMiddleware, initTokens } from "./middleware/tokenMiddleware.js";
 import ScoreRouter from "./routes/student.score.routes.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -31,7 +32,7 @@ app.use(express.json());
 initTokens();
 
 // Token middleware'ni ulash
-// app.use(tokenMiddleware);
+app.use(tokenMiddleware);
 
 const port = process.env.PORT || 3000;
 const mongo_uri = process.env.MONGO_URI;
