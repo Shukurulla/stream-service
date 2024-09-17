@@ -1,14 +1,21 @@
 import mongoose from "mongoose";
 const studentScoreModel = mongoose.model("Score", {
   student: {
-    id: {
-      type: mongoose.Types.ObjectId,
-      required: true,
+    profileImage: {
+      type: String,
     },
     name: {
       type: String,
       required: true,
     },
+    group: {
+      type: String,
+      required: true,
+    },
+  },
+  studentId: {
+    type: mongoose.Types.ObjectId,
+    required: true,
   },
   lesson: {
     type: String,

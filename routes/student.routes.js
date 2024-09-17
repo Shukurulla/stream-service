@@ -212,6 +212,15 @@ router.get("/student/me", verifyToken, async (req, res) => {
   }
 });
 
+router.get("/all-students", async (req, res) => {
+  try {
+    const students = await studentModel.find();
+    res.json(students);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 /**
  * @swagger
  * /student/profile:
