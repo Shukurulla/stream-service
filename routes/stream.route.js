@@ -90,6 +90,28 @@ router.post("/create-stream", authMiddleware, async (req, res) => {
   }
 });
 
+// Webhook uchun route yaratamiz
+router.post("/webhook", (req, res) => {
+  const { type, data } = req.body;
+
+  // Stream boshlandi (stream.started) hodisasini ushlab olish
+  if (type === "video.live-stream.broadcast.started") {
+    const streamId = data.liveStreamId;
+    console.log(`Stream boshlandi: ${streamId}`);
+    // Bu yerda stream boshlandi deb qayd qilishingiz yoki ma'lumotni saqlashingiz mumkin
+  }
+
+  // Stream tugadi (stream.ended) hodisasini ushlab olish
+  if (type === "video.live-stream.broadcast.ended") {
+    const streamId = data.liveStreamId;
+    const videoId = data.videoId; // Tugatilgan streamning video ID si
+    console.log(`Stream tugadi: ${streamId}, Video ID: ${videoId}`);
+    // Tugatilgan videoning URL sini API.video orqali olishingiz mumkin
+  }
+
+  res.status(200).send("Webhook qabul qilindi");
+});
+
 /**
  * @swagger
  * components:
