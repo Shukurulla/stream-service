@@ -145,12 +145,19 @@ router.post("/create-stream", authMiddleware, async (req, res) => {
  */
 router.get("/streams/soon", async (req, res) => {
   try {
-    const streams = await streamModel.find({ isStart: false });
-    if (!streams) {
+    const streams = await streamModel
+      .find({
+        isEnded: false, // Tugallanmagan streamlar
+        "streamInfo.broadcasting": false, // Hali jonli bo'lmagan streamlar
+      })
+      .sort({ planStream: 1 }); // Istalgan tartibda (yaqinroq vaqtlar birinchi)
+
+    if (!streams.length) {
       return res.json({
-        error: "Yaqinda tashkil qilinishi rejalashtirilgan streamlar topilmadi",
+        error: "Hali boshlanmagan streamlar topilmadi",
       });
     }
+
     res.json(streams);
   } catch (error) {
     res.json({ error: error.message });
