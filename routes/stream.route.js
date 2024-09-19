@@ -57,12 +57,11 @@ const apiVideoToken = process.env.API_VIDEO_KEY;
  */
 router.post("/create-stream", authMiddleware, async (req, res) => {
   try {
-    // API so'rovi yuboramiz
     const response = await axios.post(
       "https://ws.api.video/live-streams",
       {
         name: req.body.title,
-        record: true, // Streamni saqlash (record) uchun true qilib belgilaymiz
+        record: true,
       },
       {
         headers: {
@@ -75,11 +74,12 @@ router.post("/create-stream", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Stream yaratilmadi" });
     }
 
+    // Yaratilayotgan streamni konsolda ko'rish uchun qo'shamiz
     const stream = await streamModel.create({
       ...req.body,
       streamInfo: response.data,
     });
-    // API'dan olingan javobni qaytaramiz
+
     res.status(200).json(stream);
   } catch (error) {
     console.error(error);
@@ -159,7 +159,7 @@ router.get("/streams/soon", async (req, res) => {
 
 router.get("/streams/all", async (req, res) => {
   try {
-    const streams = await streamModel.find();
+    const streams = await streamModel.find().sort({ createdAt: -1 });
     res.json(streams);
   } catch (error) {
     res.json({ error: error.message });
@@ -576,7 +576,7 @@ router.post("/streams/:id/viewers", async (req, res) => {
  */
 router.delete("/stream/:id", authMiddleware, async (req, res) => {
   try {
-    const stream = await streamModel.findByIdAndDelete(req.params.userId);
+    const stream = await streamModel.findByIdAndDelete(req.params.id);
 
     if (!stream) {
       return res.status(404).json({ message: "Stream not found" });
