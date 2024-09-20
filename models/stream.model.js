@@ -37,6 +37,14 @@ const streamSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    streamId: {
+      type: String,
+      required: true,
+    },
+    isStart: {
+      type: Boolean,
+      default: false,
+    },
     teacher: {
       id: {
         type: mongoose.Schema.Types.ObjectId,
@@ -93,6 +101,9 @@ const streamSchema = new mongoose.Schema(
         },
       },
     ],
+    assets: {
+      type: Object,
+    },
   },
   { timestamps: true }
 ); // timestamps qo'shildi

@@ -5,6 +5,7 @@ import authMiddleware from "../middleware/auth.middleware.js";
 import { config } from "dotenv";
 import teacherModel from "../models/teacher.model.js";
 import { verifyToken } from "../middleware/verifyToken.middleware.js";
+import studentModel from "../models/student.model.js";
 
 const router = express.Router();
 config();
@@ -74,10 +75,22 @@ router.post("/create-stream", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Stream yaratilmadi" });
     }
 
+    const findTeacher = await teacherModel.findById(req.body.teacher.id);
+
+    if (!findTeacher) {
+      return res.json({ error: "Bunday oqituvchi topilmadi" });
+    }
+
     // Yaratilayotgan streamni konsolda ko'rish uchun qo'shamiz
     const stream = await streamModel.create({
       ...req.body,
       streamInfo: response.data,
+      streamId: response.data.liveStreamId,
+      teacher: {
+        name: findTeacher.name,
+        profileImage: findTeacher.profileImage,
+        id: findTeacher._id,
+      },
     });
 
     res.status(200).json(stream);
@@ -91,13 +104,14 @@ router.post("/create-stream", authMiddleware, async (req, res) => {
 });
 
 // Webhook uchun route yaratamiz
-router.post("/webhook", (req, res) => {
+router.post("/webhook", async (req, res) => {
   const { type, data } = req.body;
 
   // Stream boshlandi (stream.started) hodisasini ushlab olish
   if (type === "video.live-stream.broadcast.started") {
     const streamId = data.liveStreamId;
-    console.log(`Stream boshlandi: ${streamId}`);
+    await streamModel.findOneAndUpdate({ streamId }, { isStart: true });
+
     // Bu yerda stream boshlandi deb qayd qilishingiz yoki ma'lumotni saqlashingiz mumkin
   }
 
@@ -105,11 +119,43 @@ router.post("/webhook", (req, res) => {
   if (type === "video.live-stream.broadcast.ended") {
     const streamId = data.liveStreamId;
     const videoId = data.videoId; // Tugatilgan streamning video ID si
-    console.log(`Stream tugadi: ${streamId}, Video ID: ${videoId}`);
-    // Tugatilgan videoning URL sini API.video orqali olishingiz mumkin
-  }
 
+    try {
+      // Video ma'lumotlarini API.video'dan olish uchun so'rov yuboramiz
+      const response = await axios.get(
+        `https://ws.api.video/videos/${videoId}`,
+        {
+          headers: {
+            Authorization: apiVideoToken, // Bu yerga o'z API kalitingizni qo'ying
+          },
+        }
+      );
+
+      // Video URL'ni javobdan olamiz
+      const videoUrl = response.data.assets;
+      await streamModel.findOneAndUpdate(
+        { streamId },
+        { assets: videoUrl, isEnded: true }
+      );
+
+      // Video URL'ni saqlash yoki boshqa maqsadlarda ishlatish mumkin
+    } catch (error) {
+      console.error("Video ma'lumotlarini olishda xato yuz berdi:", error);
+    }
+  }
   res.status(200).send("Webhook qabul qilindi");
+});
+
+router.post("/all-delete", async (req, res) => {
+  try {
+    const allStream = await studentModel.find();
+    for (let i = 0; i < allStream.length; i++) {
+      await studentModel.findByIdAndDelete(allStream[i]._id);
+    }
+    res.json(allStream);
+  } catch (error) {
+    res.json({ error: error.message });
+  }
 });
 
 /**
@@ -264,9 +310,9 @@ router.get("/streams/previous", verifyToken, async (req, res) => {
     const othersStreams = streams.filter((c) => c.teacher.id !== userId);
 
     res.json(
-      othersStreams.sort(
-        (a, b) => new Date(b.planStream) - new Date(a.planStream)
-      )
+      othersStreams
+        .sort((a, b) => new Date(b.planStream) - new Date(a.planStream))
+        .filter((c) => c.isEnded == true)
     );
   } catch (error) {
     console.error(error);
@@ -312,9 +358,7 @@ router.get("/streams/previous", verifyToken, async (req, res) => {
  */
 router.get("/streams/live", async (req, res) => {
   try {
-    const streams = await streamModel.find({
-      streamInfo: { broadcasting: true },
-    });
+    const streams = await streamModel.find({ isStart: true });
     res.json(streams);
   } catch (error) {
     res.status(500).json({ error: error.message });
