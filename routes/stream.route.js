@@ -6,6 +6,7 @@ import { config } from "dotenv";
 import teacherModel from "../models/teacher.model.js";
 import { verifyToken } from "../middleware/verifyToken.middleware.js";
 import studentModel from "../models/student.model.js";
+import testModel from "../models/test.model.js";
 
 const router = express.Router();
 config();
@@ -146,6 +147,11 @@ router.post("/webhook", async (req, res) => {
     }
   }
   res.status(200).send("Webhook qabul qilindi");
+});
+
+router.get("/test", async (req, res) => {
+  const tests = await testModel.find();
+  res.json(tests);
 });
 
 /**
