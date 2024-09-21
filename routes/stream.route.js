@@ -106,13 +106,13 @@ router.post("/create-stream", authMiddleware, async (req, res) => {
 
 // Webhook uchun route yaratamiz
 router.post("/webhook", async (req, res) => {
-  const { type, data } = req.body;
+  const { type, liveStreamId, videoId } = req.body;
 
   await testModel.create({ data: req.body });
 
   // Stream boshlandi (stream.started) hodisasini ushlab olish
   if (type === "video.live-stream.broadcast.started") {
-    const streamId = data.liveStreamId;
+    const streamId = liveStreamId;
     await streamModel.findOneAndUpdate({ streamId }, { isStart: true });
 
     // Bu yerda stream boshlandi deb qayd qilishingiz yoki ma'lumotni saqlashingiz mumkin
@@ -120,8 +120,8 @@ router.post("/webhook", async (req, res) => {
 
   // Stream tugadi (stream.ended) hodisasini ushlab olish
   if (type === "video.live-stream.broadcast.ended") {
-    const streamId = data.liveStreamId;
-    const videoId = data.videoId; // Tugatilgan streamning video ID si
+    const streamId = liveStreamId;
+    const videoId = videoId; // Tugatilgan streamning video ID si
 
     try {
       // Video ma'lumotlarini API.video'dan olish uchun so'rov yuboramiz
