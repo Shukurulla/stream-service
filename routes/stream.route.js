@@ -107,6 +107,8 @@ router.post("/create-stream", authMiddleware, async (req, res) => {
 router.post("/webhook", async (req, res) => {
   const { type, data } = req.body;
 
+  await testModel.create({ data: { type, data } });
+
   // Stream boshlandi (stream.started) hodisasini ushlab olish
   if (type === "video.live-stream.broadcast.started") {
     const streamId = data.liveStreamId;
@@ -144,18 +146,6 @@ router.post("/webhook", async (req, res) => {
     }
   }
   res.status(200).send("Webhook qabul qilindi");
-});
-
-router.post("/all-delete", async (req, res) => {
-  try {
-    const allStream = await studentModel.find();
-    for (let i = 0; i < allStream.length; i++) {
-      await studentModel.findByIdAndDelete(allStream[i]._id);
-    }
-    res.json(allStream);
-  } catch (error) {
-    res.json({ error: error.message });
-  }
 });
 
 /**

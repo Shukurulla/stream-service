@@ -83,10 +83,14 @@ router.get("/score/:id", async (req, res) => {
 
 router.get("/score/lesson/:lesson", async (req, res) => {
   const { lesson } = req.params;
+
   try {
-    const scores = await studentScoreModel.find();
-    const filterByLesson = scores.filter((c) => c.lesson == lesson);
-    res.json(filterByLesson);
+    // Mongoose query orqali lesson bo'yicha filter va score bo'yicha tartiblaymiz
+    const scores = await studentScoreModel
+      .find({ lesson }) // lesson bo'yicha filterlaymiz
+      .sort({ score: -1 }); // score bo'yicha yuqoridan pastga qarab tartiblash (-1 demak yuqoridan pastga)
+
+    res.json(scores);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
