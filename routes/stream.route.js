@@ -214,7 +214,7 @@ router.get("/streams/soon", async (req, res) => {
     const streams = await streamModel
       .find({
         isEnded: false, // Tugallanmagan streamlar
-        "streamInfo.broadcasting": false, // Hali jonli bo'lmagan streamlar
+        isStart: false, // Hali jonli bo'lmagan streamlar
       })
       .sort({ planStream: 1 }); // Istalgan tartibda (yaqinroq vaqtlar birinchi)
 
