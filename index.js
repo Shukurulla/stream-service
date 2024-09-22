@@ -13,6 +13,7 @@ import swaggerUi from "swagger-ui-express";
 import { generateSwaggerSpec } from "./swagger.js";
 import { tokenMiddleware, initTokens } from "./middleware/tokenMiddleware.js";
 import ScoreRouter from "./routes/student.score.routes.js";
+import PercentRouter from "./routes/percent.routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,6 +56,7 @@ app.use(StudentSignRouter);
 app.use(StudentNotificationRouter);
 app.use(GroupRouter);
 app.use(ScoreRouter);
+app.use(PercentRouter);
 
 // Generate Swagger spec dynamically
 const swaggerSpec = generateSwaggerSpec();
