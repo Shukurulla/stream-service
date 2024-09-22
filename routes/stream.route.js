@@ -117,6 +117,7 @@ router.post("/webhook", async (req, res) => {
       { streamId },
       { isStart: true, isEnded: false }
     );
+    await testModel.create({ data: req.body });
 
     // Bu yerda stream boshlandi deb qayd qilishingiz yoki ma'lumotni saqlashingiz mumkin
   }
@@ -162,7 +163,7 @@ router.post("/webhook", async (req, res) => {
 router.get("/test", async (req, res) => {
   const tests = await testModel.find();
   // for (let i = 0; i < tests.length; i++) {
-  //   await streamModel.findByIdAndDelete(tests[i]._id);
+  //   await testModel.findByIdAndDelete(tests[i]._id);
   // }
   res.json(tests.reverse());
 });
