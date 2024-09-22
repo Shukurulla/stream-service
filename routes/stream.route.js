@@ -132,8 +132,10 @@ router.post("/webhook", async (req, res) => {
     await testModel.create({ data: req.body });
     // Video URL'ni saqlash yoki boshqa maqsadlarda ishlatish mumkin
   }
-  if (type === "video.encoding.quality.completed") {
-    const streamId = req.body;
+  if (
+    type === "video.encoding.quality.completed" ||
+    type === "video.source.recorded"
+  ) {
     const videoId = req.body;
     try {
       // Video ma'lumotlarini API.video'dan olish uchun so'rov yuboramiz
