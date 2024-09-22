@@ -46,7 +46,7 @@ router.get("/percent/student/:studentId", async (req, res) => {
   }
 });
 
-router.put("/percent/:id/edit", async (req, res) => {
+router.put("/percent/:id/edit", authMiddleware, async (req, res) => {
   try {
     const findPercent = await percentModel.findById(req.params.id);
     if (!findPercent) {
@@ -61,6 +61,19 @@ router.put("/percent/:id/edit", async (req, res) => {
       { new: true }
     );
     res.json(updatePercent);
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
+
+router.delete("/percent/:id/delete", authMiddleware, async (req, res) => {
+  try {
+    const findPercent = await percentModel.findById(req.params.id);
+    if (!findPercent) {
+      return res.json({ error: "Bunday percent topilmadi" });
+    }
+    await percentModel.findByIdAndDelete(req.params.id);
+    res.json({ message: "Percent muaffaqiyatli ochirildi" });
   } catch (error) {
     res.json({ error: error.message });
   }
