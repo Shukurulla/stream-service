@@ -67,7 +67,7 @@ const sciences = ["Listening", "Reading", "Writing", "Speaking"];
 router.post("/student/register", async (req, res) => {
   const { name, password, phone, group, profileImage } = req.body;
 
-  const findPhone = await studentModel.find({ phone });
+  const findPhone = await studentModel.findOne({ phone });
 
   if (findPhone) {
     return res.json({ error: "Bu telefon raqam oldin royhatdan otgan" });
