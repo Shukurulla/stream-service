@@ -2,7 +2,7 @@ import { Schema, model, Types } from "mongoose";
 
 const percentSchema = new Schema(
   {
-    persent: {
+    percent: {
       type: Number,
       required: true,
     },
