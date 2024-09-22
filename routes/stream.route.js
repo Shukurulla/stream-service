@@ -136,14 +136,17 @@ router.post("/webhook", async (req, res) => {
     const videoId = req.body;
     try {
       // Video ma'lumotlarini API.video'dan olish uchun so'rov yuboramiz
-      const data = await axios.get(`https://ws.api.video/videos/${videoId}`, {
-        headers: {
-          Authorization: apiVideoToken, // Bu yerga o'z API kalitingizni qo'ying
-        },
-      });
+      const { data } = await axios.get(
+        `https://ws.api.video/videos/${videoId}`,
+        {
+          headers: {
+            Authorization: apiVideoToken, // Bu yerga o'z API kalitingizni qo'ying
+          },
+        }
+      );
 
       // Video URL'ni javobdan olamiz
-      const assets = response.data.assets;
+      const assets = data.assets;
       const findStream = await streamModel.findOne({ streamId: liveStreamId });
 
       await streamModel.findByIdAndUpdate(findStream._id, { assets });
