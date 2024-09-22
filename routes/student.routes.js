@@ -141,11 +141,11 @@ router.post("/student/register", async (req, res) => {
  *         description: "Server xatosi"
  */
 router.post("/student/login", async (req, res, next) => {
-  const { name, password } = req.body;
+  const { phone, password } = req.body;
 
   try {
     // Find user by name
-    const student = await studentModel.findOne({ name });
+    const student = await studentModel.findOne({ phone });
     if (!student) {
       return res.status(400).json({ message: "Invalid credentials" });
     }

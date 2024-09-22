@@ -2,6 +2,7 @@ import { Router } from "express";
 import studentNotificationModel from "../models/student.notification.model.js";
 import authMiddleware from "../middleware/auth.middleware.js";
 import Stream from "../models/stream.model.js";
+import studentModel from "../models/student.model.js";
 
 const router = Router();
 
@@ -152,6 +153,24 @@ router.get("/notifications/:studentId", async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Error retrieving notifications", error });
+  }
+});
+
+router.get("/notification/:userId/length", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const student = await studentModel.findById(userId);
+    if (!student) {
+      return res.json({ error: "Bunday Student topilmadi" });
+    }
+    const findNotifications = await studentNotificationModel.find({
+      student: userId,
+      read: false,
+    });
+
+    res.json({ length: findNotifications.length });
+  } catch (error) {
+    res.json({ error: error.message });
   }
 });
 
