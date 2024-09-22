@@ -356,7 +356,7 @@ router.get("/streams/previous", verifyToken, async (req, res) => {
  */
 router.get("/streams/live", async (req, res) => {
   try {
-    const streams = await streamModel.find({ isStart: true });
+    const streams = await streamModel.find({ isStart: true, isEnded: false });
     res.json(streams);
   } catch (error) {
     res.status(500).json({ error: error.message });

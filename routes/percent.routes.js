@@ -1,6 +1,7 @@
 import { Router } from "express";
 import authMiddleware from "../middleware/auth.middleware.js";
 import percentModel from "../models/studentPersent.model.js";
+import studentModel from "../models/student.model.js";
 
 const router = Router();
 
@@ -46,20 +47,19 @@ router.get("/percent/student/:studentId", async (req, res) => {
   }
 });
 
-router.put("/percent/:id/edit", authMiddleware, async (req, res) => {
+router.put("/percent/edit", authMiddleware, async (req, res) => {
   try {
-    const findPercent = await percentModel.findById(req.params.id);
-    if (!findPercent) {
-      return res.json({ error: "Bunday percent topilmadi" });
+    const { percent, student, science } = req.body;
+    const findStudent = await studentModel.findById(student);
+    if (!findStudent) {
+      return res.json({ error: "Bunday student topilmadi" });
     }
 
-    const updatePercent = await percentModel.findByIdAndUpdate(
-      req.params.id,
-      {
-        $set: req.body,
-      },
-      { new: true }
-    );
+    const findPercentScience = await percentModel.find({ student, science });
+    if (findPercentScience) {
+      return res.json({ error: "bunday percent topilmadi" });
+    }
+
     res.json(updatePercent);
   } catch (error) {
     res.json({ error: error.message });
