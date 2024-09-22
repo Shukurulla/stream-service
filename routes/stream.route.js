@@ -128,7 +128,7 @@ router.post("/webhook", async (req, res) => {
       { streamId: liveStreamId },
       { isEnded: true, isStart: false }
     );
-    await testModel.create({ data: findStream });
+    await testModel.create({ data: req.body });
     // Video URL'ni saqlash yoki boshqa maqsadlarda ishlatish mumkin
   }
   if (type === "video.encoding.quality.completed") {
@@ -148,7 +148,7 @@ router.post("/webhook", async (req, res) => {
 
       await streamModel.findByIdAndUpdate(findStream._id, { assets });
 
-      await testModel.create({ data: { data, videoUrl } });
+      await testModel.create({ data: { data, assets } });
     } catch (error) {
       console.error("Video ma'lumotlarini olishda xato yuz berdi:", error);
     }
@@ -158,10 +158,10 @@ router.post("/webhook", async (req, res) => {
 
 router.get("/test", async (req, res) => {
   const tests = await testModel.find();
-  // for (let i = 0; i < tests.length; i++) {
-  //   await testModel.findByIdAndDelete(tests[i]._id);
-  // }
-  res.json(tests);
+  for (let i = 0; i < tests.length; i++) {
+    await testModel.findByIdAndDelete(tests[i]._id);
+  }
+  res.json(tests.reverse());
 });
 
 /**

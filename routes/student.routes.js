@@ -67,6 +67,11 @@ const sciences = ["Listening", "Reading", "Writing", "Speaking"];
 router.post("/student/register", async (req, res) => {
   const { name, password, phone, group, profileImage } = req.body;
 
+  const findPhone = await studentModel.find({ phone });
+
+  if (findPhone) {
+    return res.json({ error: "Bu telefon raqam oldin royhatdan otgan" });
+  }
   try {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
