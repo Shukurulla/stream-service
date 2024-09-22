@@ -143,8 +143,10 @@ router.post("/webhook", async (req, res) => {
       });
 
       // Video URL'ni javobdan olamiz
-      const videoUrl = response.data.assets;
-      const findStream = await streamModel.find({ liveStreamId });
+      const assets = response.data.assets;
+      const findStream = await streamModel.findOne({ streamId: liveStreamId });
+
+      await streamModel.findByIdAndUpdate(findStream._id, { assets });
 
       await testModel.create({ data: { data, videoUrl } });
     } catch (error) {

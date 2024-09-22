@@ -3,6 +3,7 @@ import studentModel from "../models/student.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { verifyToken } from "../middleware/verifyToken.middleware.js";
+import percentModel from "../models/studentPersent.model.js";
 
 const router = express.Router();
 
@@ -61,6 +62,8 @@ const router = express.Router();
  *       500:
  *         description: "Server xatosi"
  */
+const sciences = ["Listening", "Reading", "Writing", "Speaking"];
+
 router.post("/student/register", async (req, res) => {
   const { name, password, phone, group, profileImage } = req.body;
 
@@ -83,7 +86,13 @@ router.post("/student/register", async (req, res) => {
     const token = jwt.sign({ userId: newStudent._id }, process.env.JWT_SECRET, {
       expiresIn: "30d",
     });
-
+    for (let i = 0; i < sciences.length; i++) {
+      await percentModel.create({
+        percent: 0,
+        science: sciences[i],
+        student: newStudent._id,
+      });
+    }
     res.status(201).json({
       message: "User registered successfully",
       token,
