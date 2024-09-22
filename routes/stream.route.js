@@ -120,7 +120,7 @@ router.post("/webhook", async (req, res) => {
   // Stream tugadi (stream.ended) hodisasini ushlab olish
   if (type === "live-stream.broadcast.ended") {
     const streamId = req.body;
-    const findStream = await streamModel.findOne({ streamId });
+    const findStream = await streamModel.find({ streamId });
     await testModel.create({ data: findStream });
     // Video URL'ni saqlash yoki boshqa maqsadlarda ishlatish mumkin
   }
