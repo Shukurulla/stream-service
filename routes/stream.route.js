@@ -148,7 +148,7 @@ router.post("/webhook", async (req, res) => {
 
       await streamModel.findByIdAndUpdate(findStream._id, { assets });
 
-      await testModel.create({ data: { data, assets } });
+      await testModel.create({ data: { data: req.body, assets } });
     } catch (error) {
       console.error("Video ma'lumotlarini olishda xato yuz berdi:", error);
     }
