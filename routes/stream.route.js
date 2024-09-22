@@ -119,31 +119,27 @@ router.post("/webhook", async (req, res) => {
 
   // Stream tugadi (stream.ended) hodisasini ushlab olish
   if (type === "live-stream.broadcast.ended") {
-    const streamId = liveStreamId;
-    const videoId = req.body;
-    try {
-      // Video ma'lumotlarini API.video'dan olish uchun so'rov yuboramiz
-      const response = await axios.get(
-        `https://ws.api.video/videos/${videoId}`,
-        {
+    const streamId = req.body;
+    await streamModel.findOneAndUpdate({ streamId }, { isEnded: true });
+
+    // Video URL'ni saqlash yoki boshqa maqsadlarda ishlatish mumkin
+    if (type === "video.encoding.quality.completed") {
+      const streamId = req.body;
+      const videoId = req.body;
+      try {
+        // Video ma'lumotlarini API.video'dan olish uchun so'rov yuboramiz
+        const data = await axios.get(`https://ws.api.video/videos/${videoId}`, {
           headers: {
             Authorization: apiVideoToken, // Bu yerga o'z API kalitingizni qo'ying
           },
-        }
-      );
+        });
 
-      // Video URL'ni javobdan olamiz
-      const videoUrl = response.data.assets;
-      await testModel.create({ data: response.data });
-
-      await streamModel.findOneAndUpdate(
-        { streamId },
-        { assets: videoUrl, isEnded: true }
-      );
-
-      // Video URL'ni saqlash yoki boshqa maqsadlarda ishlatish mumkin
-    } catch (error) {
-      console.error("Video ma'lumotlarini olishda xato yuz berdi:", error);
+        // Video URL'ni javobdan olamiz
+        const videoUrl = response.data.assets;
+        await testModel.create({ data: { data, videoUrl } });
+      } catch (error) {
+        console.error("Video ma'lumotlarini olishda xato yuz berdi:", error);
+      }
     }
   }
   res.status(200).send("Webhook qabul qilindi");
