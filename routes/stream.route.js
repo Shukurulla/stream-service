@@ -121,6 +121,7 @@ router.post("/webhook", async (req, res) => {
   if (type === "live-stream.broadcast.ended") {
     const streamId = req.body;
     const findStream = await streamModel.find({ streamId });
+    await streamModel.findOneAndUpdate({ streamId }, { isStart: true });
     await testModel.create({ data: findStream });
     // Video URL'ni saqlash yoki boshqa maqsadlarda ishlatish mumkin
   }
