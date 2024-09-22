@@ -87,6 +87,7 @@ router.post("/create-stream", authMiddleware, async (req, res) => {
       ...req.body,
       streamInfo: response.data,
       streamId: response.data.liveStreamId,
+      planstream: new Date(),
       teacher: {
         name: findTeacher.name,
         profileImage: findTeacher.profileImage,
@@ -143,6 +144,8 @@ router.post("/webhook", async (req, res) => {
 
       // Video URL'ni javobdan olamiz
       const videoUrl = response.data.assets;
+      const findStream = await streamModel.find({ liveStreamId });
+
       await testModel.create({ data: { data, videoUrl } });
     } catch (error) {
       console.error("Video ma'lumotlarini olishda xato yuz berdi:", error);
