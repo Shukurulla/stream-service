@@ -60,6 +60,11 @@ router.put("/percent/edit", authMiddleware, async (req, res) => {
       return res.json({ error: "bunday percent topilmadi" });
     }
 
+    const updatePercent = await percentModel.findByIdAndUpdate(
+      findPercentScience._id,
+      { percent }
+    );
+
     res.json(updatePercent);
   } catch (error) {
     res.json({ error: error.message });

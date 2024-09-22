@@ -112,7 +112,10 @@ router.post("/webhook", async (req, res) => {
   await testModel.create({ data: req.body });
   if (type === "live-stream.broadcast.started") {
     const streamId = liveStreamId;
-    await streamModel.findOneAndUpdate({ streamId }, { isStart: true });
+    await streamModel.findOneAndUpdate(
+      { streamId },
+      { isStart: true, isEnded: false }
+    );
 
     // Bu yerda stream boshlandi deb qayd qilishingiz yoki ma'lumotni saqlashingiz mumkin
   }
@@ -356,8 +359,8 @@ router.get("/streams/previous", verifyToken, async (req, res) => {
  */
 router.get("/streams/live", async (req, res) => {
   try {
-    const streams = await streamModel.find({ isStart: true, isEnded: false });
-    res.json(streams);
+    const streams = await streamModel.find({ isStart: true });
+    res.json(streams.filter((c) => c.isEnded === false));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
