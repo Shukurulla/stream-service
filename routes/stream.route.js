@@ -109,8 +109,8 @@ router.post("/webhook", async (req, res) => {
   const { type, liveStreamId } = req.body;
 
   // Stream boshlandi (stream.started) hodisasini ushlab olish
+  await testModel.create({ data: req.body });
   if (type === "video.live-stream.broadcast.started") {
-    await testModel.create({ data: req.body });
     const streamId = liveStreamId;
     await streamModel.findOneAndUpdate({ streamId }, { isStart: true });
 
@@ -151,6 +151,9 @@ router.post("/webhook", async (req, res) => {
 
 router.get("/test", async (req, res) => {
   const tests = await testModel.find();
+  // for (let i = 0; i < tests.length; i++) {
+  //   await testModel.findByIdAndDelete(tests[i]._id);
+  // }
   res.json(tests);
 });
 
