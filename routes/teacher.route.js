@@ -325,6 +325,12 @@ router.put("/teacher/profile", verifyToken, async (req, res) => {
  *       500:
  *         description: Server error
  */
+
+router.get("/all-teacher", async (req, res) => {
+  const teachers = await teacherModel.find();
+  res.json(teachers);
+});
+
 router.delete("/teacher/profile", verifyToken, async (req, res) => {
   try {
     const teacher = await teacherModel.findByIdAndDelete(req.user.userId);

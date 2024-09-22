@@ -52,6 +52,9 @@ const streamSchema = new mongoose.Schema(
         required: true,
       },
       name: { type: String, required: true },
+      profileImage: {
+        type: String,
+      },
     },
     comments: [
       {
