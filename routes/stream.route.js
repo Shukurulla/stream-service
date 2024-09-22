@@ -158,9 +158,9 @@ router.post("/webhook", async (req, res) => {
 
 router.get("/test", async (req, res) => {
   const tests = await testModel.find();
-  for (let i = 0; i < tests.length; i++) {
-    await testModel.findByIdAndDelete(tests[i]._id);
-  }
+  // for (let i = 0; i < tests.length; i++) {
+  //   await streamModel.findByIdAndDelete(tests[i]._id);
+  // }
   res.json(tests.reverse());
 });
 

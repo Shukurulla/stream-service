@@ -72,6 +72,7 @@ router.post("/student/register", async (req, res) => {
   if (findPhone) {
     return res.json({ error: "Bu telefon raqam oldin royhatdan otgan" });
   }
+
   try {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
