@@ -74,7 +74,7 @@ router.get("/score/:id", async (req, res) => {
       return res.status(404).json({ error: "Bunday student topilmadi" });
     }
     const scores = await studentScoreModel.find();
-    const studentScores = scores.filter((c) => c.student.id == id);
+    const studentScores = scores.filter((c) => c.studentId == id);
     res.status(200).json(studentScores);
   } catch (error) {
     res.status(500).json({ error: error.message });
