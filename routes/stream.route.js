@@ -137,27 +137,24 @@ router.post("/webhook", async (req, res) => {
     type === "video.source.recorded"
   ) {
     const videoId = req.body;
-    try {
-      // Video ma'lumotlarini API.video'dan olish uchun so'rov yuboramiz
-      const { data } = await axios.get(
-        `https://ws.api.video/videos/${videoId}`,
-        {
-          headers: {
-            Authorization: apiVideoToken, // Bu yerga o'z API kalitingizni qo'ying
-          },
-        }
-      );
+    // try {
+    //   // Video ma'lumotlarini API.video'dan olish uchun so'rov yuboramiz
+    //   const { data } = await axios.get(
+    //     `https://ws.api.video/videos/${videoId}`,
+    //     {
+    //       headers: {
+    //         Authorization: apiVideoToken, // Bu yerga o'z API kalitingizni qo'ying
+    //       },
+    //     }
+    //   );
 
-      // Video URL'ni javobdan olamiz
-      const assets = data.assets;
-      const findStream = await streamModel.findOne({ streamId: liveStreamId });
+    //   // Video URL'ni javobdan olamiz
+    //   const assets = data.assets;
+    //   const findStream = await streamModel.findOne({ streamId: liveStreamId });
 
-      await streamModel.findByIdAndUpdate(findStream._id, { assets });
+    //   await streamModel.findByIdAndUpdate(findStream._id, { assets });
 
-      await testModel.create({ data: { data: req.body, assets } });
-    } catch (error) {
-      console.error("Video ma'lumotlarini olishda xato yuz berdi:", error);
-    }
+    await testModel.create({ data: { videoId } });
   }
   res.status(200).send("Webhook qabul qilindi");
 });
