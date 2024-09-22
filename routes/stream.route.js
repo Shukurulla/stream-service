@@ -110,7 +110,7 @@ router.post("/webhook", async (req, res) => {
 
   // Stream boshlandi (stream.started) hodisasini ushlab olish
   await testModel.create({ data: req.body });
-  if (type === "video.live-stream.broadcast.started") {
+  if (type === "live-stream.broadcast.started") {
     const streamId = liveStreamId;
     await streamModel.findOneAndUpdate({ streamId }, { isStart: true });
 
@@ -118,7 +118,7 @@ router.post("/webhook", async (req, res) => {
   }
 
   // Stream tugadi (stream.ended) hodisasini ushlab olish
-  if (type === "video.live-stream.broadcast.ended") {
+  if (type === "live-stream.broadcast.ended") {
     const streamId = liveStreamId;
     const videoId = req.body;
     try {
