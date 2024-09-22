@@ -108,10 +108,9 @@ router.post("/create-stream", authMiddleware, async (req, res) => {
 router.post("/webhook", async (req, res) => {
   const { type, liveStreamId } = req.body;
 
-  await testModel.create({ data: req.body });
-
   // Stream boshlandi (stream.started) hodisasini ushlab olish
   if (type === "video.live-stream.broadcast.started") {
+    await testModel.create({ data: req.body });
     const streamId = liveStreamId;
     await streamModel.findOneAndUpdate({ streamId }, { isStart: true });
 
