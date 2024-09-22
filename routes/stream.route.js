@@ -106,7 +106,7 @@ router.post("/create-stream", authMiddleware, async (req, res) => {
 
 // Webhook uchun route yaratamiz
 router.post("/webhook", async (req, res) => {
-  const { type, liveStreamId, videoId } = req.body;
+  const { type, liveStreamId } = req.body;
 
   await testModel.create({ data: req.body });
 
@@ -121,8 +121,7 @@ router.post("/webhook", async (req, res) => {
   // Stream tugadi (stream.ended) hodisasini ushlab olish
   if (type === "video.live-stream.broadcast.ended") {
     const streamId = liveStreamId;
-    const videoId = videoId; // Tugatilgan streamning video ID si
-
+    const videoId = req.body;
     try {
       // Video ma'lumotlarini API.video'dan olish uchun so'rov yuboramiz
       const response = await axios.get(
@@ -136,6 +135,8 @@ router.post("/webhook", async (req, res) => {
 
       // Video URL'ni javobdan olamiz
       const videoUrl = response.data.assets;
+      await testModel.create({ data: response.data });
+
       await streamModel.findOneAndUpdate(
         { streamId },
         { assets: videoUrl, isEnded: true }
