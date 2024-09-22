@@ -56,7 +56,7 @@ router.put("/percent/edit", authMiddleware, async (req, res) => {
     }
 
     const findPercentScience = await percentModel.find({ student, science });
-    if (findPercentScience) {
+    if (!findPercentScience) {
       return res.json({ error: "bunday percent topilmadi" });
     }
 
