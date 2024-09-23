@@ -158,6 +158,47 @@ const calculateStudentProgress = async (studentId) => {
   return result[0];
 };
 
+router.post("/scores", async (req, res) => {
+  try {
+    const { studentId, lesson, topic, score } = req.body;
+
+    // Yechilgan testni qidirish
+    const existingScore = await studentScoreModel.findOne({
+      studentId,
+      lesson,
+      topic,
+    });
+
+    if (existingScore) {
+      // Agar shu test avval yechilgan bo'lsa, mavjud natijani yangilash
+      existingScore.score = score;
+      await existingScore.save();
+
+      res
+        .status(200)
+        .json({ message: "Natija yangilandi", data: existingScore });
+    } else {
+      // Agar test yechilmagan bo'lsa, yangi natija yaratish
+      const newScore = new studentScoreModel({
+        studentId,
+        lesson,
+        topic,
+        score,
+      });
+
+      await newScore.save();
+
+      res
+        .status(201)
+        .json({ message: "Natija muvaffaqiyatli qo'shildi", data: newScore });
+    }
+  } catch (error) {
+    res
+      .status(400)
+      .json({ message: "Test natijasini saqlashda xatolik", error });
+  }
+});
+
 router.get("/scores", async (req, res) => {
   try {
     const scores = await studentScoreModel.aggregate([
