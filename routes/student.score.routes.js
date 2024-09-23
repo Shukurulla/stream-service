@@ -204,45 +204,59 @@ router.post("/scores", authMiddleware, async (req, res) => {
     });
   }
 });
-
-// Talabaning barcha test natijalarini olish va foizlarni hisoblash
-router.get("/students/:studentId/lessons/:lesson", async (req, res) => {
+// Ma'lum bir dars bo'yicha barcha studentlarning natijalarini olish
+router.get("/lessons/:lesson", async (req, res) => {
   try {
-    const { studentId, lesson } = req.params;
+    const { lesson } = req.params;
 
-    const totalTopics = lessonsData[lesson.toLowerCase()];
-    const scores = await studentScoreModel.find({ studentId, lesson });
+    // Dars bo'yicha barcha studentlarning natijalarini olish
+    const scores = await studentScoreModel.aggregate([
+      { $match: { lesson } }, // faqat kiritilgan dars bo'yicha natijalarni tanlash
+      {
+        $group: {
+          _id: "$studentId",
+          totalScore: { $sum: "$score" },
+          tests: { $push: { topic: "$topic", score: "$score" } },
+        },
+      },
+      {
+        $lookup: {
+          from: "students", // Talaba ma'lumotlarini olish uchun model nomi
+          localField: "_id",
+          foreignField: "_id",
+          as: "student",
+        },
+      },
+      { $unwind: "$student" },
+      {
+        $project: {
+          _id: 0,
+          student: {
+            profileImage: "$student.profileImage",
+            name: "$student.name",
+            group: "$student.group",
+          },
+          totalScore: 1,
+          tests: 1,
+        },
+      },
+      { $sort: { totalScore: -1 } }, // Natijalarni kamayish tartibida sortlash
+    ]);
 
     if (!scores.length) {
-      return res.status(200).json({ lesson, percentage: 0 });
+      return res
+        .status(404)
+        .json({ message: "Ushbu dars bo'yicha natijalar topilmadi" });
     }
 
-    const totalScore = scores.reduce((sum, score) => sum + score.score, 0);
-
-    const lessonData = {
-      lesson,
-      totalScore,
-      tests: scores.map((score) => ({
-        topic: score.topic,
-        score: score.score,
-        percentage: calculatePercentage(score.score, 1), // For individual topic
-      })),
-      percentage: calculatePercentage(totalScore, totalTopics),
-    };
-
-    // Calculate and include student progress
-    const progress = await calculateStudentProgress(studentId);
-
-    res.status(200).json({
-      message: "Test natijalari",
-      data: lessonData,
-      progress,
-    });
+    res
+      .status(200)
+      .json({
+        message: `${lesson} darsiga tegishli studentlar natijalari`,
+        data: scores,
+      });
   } catch (error) {
-    res.status(400).json({
-      message: "Test natijalarini olishda xatolik",
-      error: error.message || "Noma'lum xatolik",
-    });
+    res.status(400).json({ message: "Natijalarni olishda xatolik", error });
   }
 });
 
