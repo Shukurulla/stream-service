@@ -133,10 +133,16 @@ const calculateStudentProgress = async (studentId) => {
     (l) => !completedLessons.includes(l)
   );
 
+  const findStudent = await studentModel.findById(studentId);
+
   if (result.length === 0) {
     // If no results, create a default structure
     result.push({
-      student: { profileImage: "", name: "", group: "" },
+      student: {
+        profileImage: findStudent.profileImage,
+        name: findStudent.name,
+        group: findStudent.group,
+      },
       lessons: [],
     });
   }
@@ -249,12 +255,10 @@ router.get("/lessons/:lesson", async (req, res) => {
         .json({ message: "Ushbu dars bo'yicha natijalar topilmadi" });
     }
 
-    res
-      .status(200)
-      .json({
-        message: `${lesson} darsiga tegishli studentlar natijalari`,
-        data: scores,
-      });
+    res.status(200).json({
+      message: `${lesson} darsiga tegishli studentlar natijalari`,
+      data: scores,
+    });
   } catch (error) {
     res.status(400).json({ message: "Natijalarni olishda xatolik", error });
   }
