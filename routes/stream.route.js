@@ -167,6 +167,8 @@ router.get("/test", async (req, res) => {
   res.json(tests.reverse());
 });
 
+router.get("/stream");
+
 /**
  * @swagger
  * components:

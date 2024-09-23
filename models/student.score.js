@@ -21,6 +21,10 @@ const studentScoreModel = mongoose.model("Score", {
     type: String,
     required: true,
   },
+  topic: {
+    type: String,
+    required: true,
+  },
   score: {
     type: Number,
     required: true,

@@ -1,98 +1,321 @@
 import express from "express";
-import studentModel from "../models/student.model.js";
-import studentScoreModel from "../models/student.score.js";
-import authMiddleware from "../middleware/auth.middleware.js";
 import mongoose from "mongoose";
+import studentScoreModel from "../models/student.score.js";
+import studentModel from "../models/student.model.js";
+import authMiddleware from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.post("/add-score", authMiddleware, async (req, res) => {
-  const { studentId, lesson, score } = req.body;
+// Mavzular ro'yxati
+const topics = {
+  Listening: [101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112],
+  Writing: [201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211],
+  Speaking: [401, 402, 403, 404, 405],
+  Reading: [201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212],
+};
 
+// Mavzular soni
+const lessonsData = {
+  listening: topics.Listening.length,
+  writing: topics.Writing.length,
+  speaking: topics.Speaking.length,
+  reading: topics.Reading.length,
+};
+
+// Foizni hisoblash funksiyasi (natural songa o'zgartirilgan)
+const calculatePercentage = (score, totalTopics) => {
+  return Math.round((score / (totalTopics * 10)) * 100);
+};
+
+// Student progress hisoblash funksiyasi
+const calculateStudentProgress = async (studentId) => {
+  const result = await studentScoreModel.aggregate([
+    { $match: { studentId: new mongoose.Types.ObjectId(studentId) } },
+    {
+      $group: {
+        _id: "$lesson",
+        topics: { $addToSet: "$topic" },
+        scores: {
+          $push: {
+            topic: "$topic",
+            score: "$score",
+          },
+        },
+        student: { $first: "$student" },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        lesson: "$_id",
+        topics: 1,
+        scores: 1,
+        student: 1,
+        totalTopics: {
+          $size: {
+            $filter: {
+              input: { $objectToArray: topics },
+              as: "lessonTopics",
+              cond: { $eq: ["$$lessonTopics.k", "$_id"] },
+            },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        lesson: 1,
+        topics: 1,
+        scores: 1,
+        student: 1,
+        totalTopics: 1,
+        percentage: {
+          $round: [
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    { $size: "$topics" },
+                    {
+                      $arrayElemAt: [
+                        {
+                          $map: {
+                            input: {
+                              $filter: {
+                                input: { $objectToArray: topics },
+                                as: "lessonTopics",
+                                cond: { $eq: ["$$lessonTopics.k", "$lesson"] },
+                              },
+                            },
+                            as: "filtered",
+                            in: { $size: "$$filtered.v" },
+                          },
+                        },
+                        0,
+                      ],
+                    },
+                  ],
+                },
+                100,
+              ],
+            },
+            0,
+          ],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        student: { $first: "$student" },
+        lessons: {
+          $push: {
+            lesson: "$lesson",
+            percentage: "$percentage",
+            topics: "$scores",
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        student: 1,
+        lessons: 1,
+      },
+    },
+  ]);
+
+  // Add missing lessons with 0 percentage
+  const allLessons = Object.keys(topics);
+  const completedLessons = result[0]?.lessons.map((l) => l.lesson) || [];
+  const missingLessons = allLessons.filter(
+    (l) => !completedLessons.includes(l)
+  );
+
+  if (result.length === 0) {
+    // If no results, create a default structure
+    result.push({
+      student: { profileImage: "", name: "", group: "" },
+      lessons: [],
+    });
+  }
+
+  missingLessons.forEach((lesson) => {
+    result[0].lessons.push({
+      lesson,
+      percentage: 0,
+      topics: [],
+    });
+  });
+
+  return result[0];
+};
+
+// Test natijalarini yaratish yoki yangilash
+router.post("/scores", authMiddleware, async (req, res) => {
   try {
-    // Talabani studentModel orqali topish
-    const student = await studentModel.findById(studentId);
-    if (!student) {
-      return res.status(404).json({ message: "Student topilmadi" });
-    }
+    const { studentId, lesson, topic, score } = req.body;
 
-    // Talabaning shu dars uchun qo'yilgan ballini tekshirish
     const existingScore = await studentScoreModel.findOne({
-      studentId: studentId,
-      lesson: lesson,
+      studentId,
+      lesson,
+      topic,
     });
 
-    if (existingScore) {
-      // Agar ball mavjud bo'lsa, yangilash
-      existingScore.score = score;
-      existingScore.student = {
-        profileImage: student.profileImage,
-        name: student.name,
-        group: student.group,
-      };
-      await existingScore.save();
-      return res
-        .status(200)
-        .json({ message: "Ball yangilandi", score: existingScore });
-    } else {
-      // Agar ball yo'q bo'lsa, yangi ball qo'shish
-      const newScore = new studentScoreModel({
-        student: {
-          profileImage: student.profileImage,
-          name: student.name,
-          group: student.group,
-        },
-        studentId: studentId,
-        lesson: lesson,
-        score: score,
-      });
-      await newScore.save();
-      return res
-        .status(201)
-        .json({ message: "Ball qo'shildi", score: newScore });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Xatolik yuz berdi" });
-  }
-});
+    const findStudent = await studentModel.findById(studentId);
 
-router.get("/all-score", async (req, res) => {
-  try {
-    const scores = await studentScoreModel.find();
-    res.status(200).json(scores);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.get("/score/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const student = await studentModel.findById(id);
-    if (!student) {
+    if (!findStudent) {
       return res.status(404).json({ error: "Bunday student topilmadi" });
     }
-    const scores = await studentScoreModel.find();
-    const studentScores = scores.filter((c) => c.studentId == id);
-    res.status(200).json(studentScores);
+
+    if (existingScore) {
+      existingScore.score = score;
+      await existingScore.save();
+    } else {
+      const newScore = new studentScoreModel({
+        studentId,
+        lesson,
+        topic,
+        score,
+        student: {
+          profileImage: findStudent.profileImage,
+          name: findStudent.name,
+          group: findStudent.group,
+        },
+      });
+      await newScore.save();
+    }
+
+    // Calculate and include student progress
+    const progress = await calculateStudentProgress(studentId);
+
+    res.status(existingScore ? 200 : 201).json({
+      message: existingScore
+        ? "Natija yangilandi"
+        : "Natija muvaffaqiyatli qo'shildi",
+      data: existingScore || newScore,
+      progress,
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({
+      message: "Test natijasini saqlashda xatolik",
+      error,
+    });
   }
 });
 
-router.get("/score/lesson/:lesson", async (req, res) => {
-  const { lesson } = req.params;
+// Talabaning barcha test natijalarini olish va foizlarni hisoblash
+router.get("/students/:studentId/lessons/:lesson", async (req, res) => {
+  try {
+    const { studentId, lesson } = req.params;
+
+    const totalTopics = lessonsData[lesson.toLowerCase()];
+    const scores = await studentScoreModel.find({ studentId, lesson });
+
+    if (!scores.length) {
+      return res.status(200).json({ lesson, percentage: 0 });
+    }
+
+    const totalScore = scores.reduce((sum, score) => sum + score.score, 0);
+
+    const lessonData = {
+      lesson,
+      totalScore,
+      tests: scores.map((score) => ({
+        topic: score.topic,
+        score: score.score,
+        percentage: calculatePercentage(score.score, 1), // For individual topic
+      })),
+      percentage: calculatePercentage(totalScore, totalTopics),
+    };
+
+    // Calculate and include student progress
+    const progress = await calculateStudentProgress(studentId);
+
+    res.status(200).json({
+      message: "Test natijalari",
+      data: lessonData,
+      progress,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: "Test natijalarini olishda xatolik",
+      error: error.message || "Noma'lum xatolik",
+    });
+  }
+});
+
+// Barcha studentlarning natijalari bilan ma'lumotlarini olish va foizlarni qo'shish
+router.get("/scores", async (req, res) => {
+  try {
+    const scores = await studentScoreModel.aggregate([
+      {
+        $group: {
+          _id: {
+            studentId: "$studentId",
+            lesson: "$lesson",
+          },
+          student: { $first: "$student" },
+          totalScore: { $sum: "$score" },
+          tests: {
+            $push: { topic: "$topic", score: "$score" },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$_id.studentId",
+          student: { $first: "$student" },
+          totalScore: { $sum: "$totalScore" },
+          lessons: {
+            $push: {
+              lesson: "$_id.lesson",
+              totalScore: { $sum: "$totalScore" },
+              tests: "$tests",
+            },
+          },
+        },
+      },
+      { $sort: { totalScore: -1 } },
+    ]);
+
+    // Foizlarni hisoblash
+    for (const student of scores) {
+      student.lessons.forEach((lesson) => {
+        const totalTopics = lessonsData[lesson.lesson.toLowerCase()];
+        lesson.tests.forEach((test) => {
+          test.percentage = calculatePercentage(test.score, 1); // For individual topic
+        });
+        lesson.percentage = calculatePercentage(lesson.totalScore, totalTopics);
+      });
+
+      // Calculate and include student progress
+      student.progress = await calculateStudentProgress(student._id);
+    }
+
+    res.status(200).json({
+      message: "Barcha studentlarning test natijalari",
+      data: scores,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: "Test natijalarini olishda xatolik",
+      error: error.message || "Noma'lum xatolik",
+    });
+  }
+});
+
+// Student progress route
+router.get("/student-progress/:studentId", async (req, res) => {
+  const { studentId } = req.params;
 
   try {
-    // Mongoose query orqali lesson bo'yicha filter va score bo'yicha tartiblaymiz
-    const scores = await studentScoreModel
-      .find({ lesson }) // lesson bo'yicha filterlaymiz
-      .sort({ score: -1 }); // score bo'yicha yuqoridan pastga qarab tartiblash (-1 demak yuqoridan pastga)
-
-    res.json(scores);
+    const progress = await calculateStudentProgress(studentId);
+    res.json(progress);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error in student progress route:", error);
+    res.status(500).json({ message: error.message });
   }
 });
 
