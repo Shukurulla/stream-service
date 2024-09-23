@@ -158,76 +158,82 @@ const calculateStudentProgress = async (studentId) => {
   return result[0];
 };
 
-// Test natijalarini yaratish yoki yangilash
-router.post("/scores", authMiddleware, async (req, res) => {
+router.get("/scores", async (req, res) => {
   try {
-    const { studentId, lesson, topic, score } = req.body;
-
-    const existingScore = await studentScoreModel.findOne({
-      studentId,
-      lesson,
-      topic,
-    });
-
-    const findStudent = await studentModel.findById(studentId);
-
-    if (!findStudent) {
-      return res.status(404).json({ error: "Bunday student topilmadi" });
-    }
-
-    if (existingScore) {
-      existingScore.score = score;
-      await existingScore.save();
-    } else {
-      const newScore = new studentScoreModel({
-        studentId,
-        lesson,
-        topic,
-        score,
-        student: {
-          profileImage: findStudent.profileImage,
-          name: findStudent.name,
-          group: findStudent.group,
+    const scores = await studentScoreModel.aggregate([
+      {
+        $group: {
+          _id: {
+            studentId: "$studentId",
+            lesson: "$lesson",
+          },
+          student: { $first: "$student" },
+          topicsCompleted: { $addToSet: "$topic" }, // Collect unique completed topics per lesson
         },
+      },
+      {
+        $group: {
+          _id: "$_id.studentId",
+          student: { $first: "$student" },
+          totalTopicsCompleted: { $sum: { $size: "$topicsCompleted" } },
+          lessons: {
+            $push: {
+              lesson: "$_id.lesson",
+              topicsCompleted: { $size: "$topicsCompleted" },
+            },
+          },
+        },
+      },
+      { $sort: { totalTopicsCompleted: -1 } },
+    ]);
+
+    for (const student of scores) {
+      student.lessons.forEach((lesson) => {
+        const totalTopicsInLesson =
+          lessonsData[lesson.lesson.toLowerCase()] || 0;
+        lesson.percentage =
+          Math.round((lesson.topicsCompleted / totalTopicsInLesson) * 100) || 0;
       });
-      await newScore.save();
+
+      // Here we ensure that lessons are structured correctly in the response
+      student.lessons = student.lessons.map((lesson) => ({
+        lesson: lesson.lesson,
+        totalTopicsCompleted: lesson.topicsCompleted,
+        percentage: lesson.percentage,
+      }));
+
+      // Optionally include progress calculation if needed
+      student.progress = await calculateStudentProgress(student._id);
     }
 
-    // Calculate and include student progress
-    const progress = await calculateStudentProgress(studentId);
-
-    res.status(existingScore ? 200 : 201).json({
-      message: existingScore
-        ? "Natija yangilandi"
-        : "Natija muvaffaqiyatli qo'shildi",
-      data: existingScore || newScore,
-      progress,
+    res.status(200).json({
+      message: "Barcha studentlarning test natijalari",
+      data: scores,
     });
   } catch (error) {
     res.status(400).json({
-      message: "Test natijasini saqlashda xatolik",
-      error,
+      message: "Test natijalarini olishda xatolik",
+      error: error.message || "Noma'lum xatolik",
     });
   }
 });
-// Ma'lum bir dars bo'yicha barcha studentlarning natijalarini olish
+
 router.get("/lessons/:lesson", async (req, res) => {
   try {
     const { lesson } = req.params;
 
-    // Dars bo'yicha barcha studentlarning natijalarini olish
     const scores = await studentScoreModel.aggregate([
-      { $match: { lesson } }, // faqat kiritilgan dars bo'yicha natijalarni tanlash
+      { $match: { lesson } },
       {
         $group: {
           _id: "$studentId",
-          totalScore: { $sum: "$score" },
-          tests: { $push: { topic: "$topic", score: "$score" } },
+          student: { $first: "$student" },
+          topicsCompleted: { $addToSet: "$topic" },
         },
       },
       {
         $lookup: {
-          from: "students", // Talaba ma'lumotlarini olish uchun model nomi
+          from: "students",
           localField: "_id",
           foreignField: "_id",
           as: "student",
@@ -242,11 +248,32 @@ router.get("/lessons/:lesson", async (req, res) => {
             name: "$student.name",
             group: "$student.group",
           },
-          totalScore: 1,
-          tests: 1,
+          totalTopicsCompleted: { $size: "$topicsCompleted" },
         },
       },
-      { $sort: { totalScore: -1 } }, // Natijalarni kamayish tartibida sortlash
+      {
+        $project: {
+          totalTopicsCompleted: 1,
+          percentage: {
+            $round: [
+              {
+                $multiply: [
+                  {
+                    $divide: [
+                      "$totalTopicsCompleted",
+                      lessonsData[lesson.toLowerCase()],
+                    ],
+                  },
+                  100,
+                ],
+              },
+              0,
+            ],
+          },
+          student: 1,
+        },
+      },
+      { $sort: { totalTopicsCompleted: -1 } },
     ]);
 
     if (!scores.length) {
@@ -263,7 +290,6 @@ router.get("/lessons/:lesson", async (req, res) => {
     res.status(400).json({ message: "Natijalarni olishda xatolik", error });
   }
 });
-
 // Barcha studentlarning natijalari bilan ma'lumotlarini olish va foizlarni qo'shish
 router.get("/scores", async (req, res) => {
   try {
@@ -275,40 +301,36 @@ router.get("/scores", async (req, res) => {
             lesson: "$lesson",
           },
           student: { $first: "$student" },
-          totalScore: { $sum: "$score" },
-          tests: {
-            $push: { topic: "$topic", score: "$score" },
-          },
+          topicsCompleted: { $addToSet: "$topic" }, // Collect topics completed by student
         },
       },
       {
         $group: {
           _id: "$_id.studentId",
           student: { $first: "$student" },
-          totalScore: { $sum: "$totalScore" },
+          totalTopicsCompleted: {
+            $sum: { $size: "$topicsCompleted" },
+          },
           lessons: {
             $push: {
               lesson: "$_id.lesson",
-              totalScore: { $sum: "$totalScore" },
-              tests: "$tests",
+              topicsCompleted: { $size: "$topicsCompleted" },
             },
           },
         },
       },
-      { $sort: { totalScore: -1 } },
+      { $sort: { totalTopicsCompleted: -1 } }, // Students sorted by total topics completed
     ]);
 
     // Foizlarni hisoblash
     for (const student of scores) {
       student.lessons.forEach((lesson) => {
-        const totalTopics = lessonsData[lesson.lesson.toLowerCase()];
-        lesson.tests.forEach((test) => {
-          test.percentage = calculatePercentage(test.score, 1); // For individual topic
-        });
-        lesson.percentage = calculatePercentage(lesson.totalScore, totalTopics);
+        const totalTopicsInLesson = lessonsData[lesson.lesson.toLowerCase()];
+        lesson.percentage =
+          Math.round((lesson.topicsCompleted / totalTopicsInLesson) * 100) || 0; // Calculate percentage
       });
 
-      // Calculate and include student progress
+      // Set student progress if needed (as previously calculated)
       student.progress = await calculateStudentProgress(student._id);
     }
 
@@ -323,7 +345,6 @@ router.get("/scores", async (req, res) => {
     });
   }
 });
-
 // Student progress route
 router.get("/student-progress/:studentId", async (req, res) => {
   const { studentId } = req.params;
