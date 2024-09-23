@@ -167,7 +167,24 @@ router.get("/test", async (req, res) => {
   res.json(tests.reverse());
 });
 
-router.get("/stream");
+router.get("/stream/:liveStreamId", async (req, res) => {
+  const { liveStreamId } = req.params;
+  try {
+    const { data } = await axios.get(`https://ws.api.video/videos`, {
+      headers: {
+        Authorization: `Bearer ${apiVideoToken}`, // Bu yerda API kalitingizni kiriting
+      },
+    });
+
+    const stream = data.data.filter(
+      (c) => c.source.liveStream.liveStreamId === liveStreamId
+    )[0];
+
+    res.json(stream.assets);
+  } catch (error) {
+    res.status(error.response?.status || 500).json({ error: error.message });
+  }
+});
 
 /**
  * @swagger
