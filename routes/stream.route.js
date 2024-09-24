@@ -73,13 +73,13 @@ router.post("/create-stream", authMiddleware, async (req, res) => {
       }
     );
     if (!response.data) {
-      return res.status(400).json({ error: "Stream yaratilmadi" });
+      return res.status(400).json({ message: "Stream yaratilmadi" });
     }
 
     const findTeacher = await teacherModel.findById(req.body.teacher.id);
 
     if (!findTeacher) {
-      return res.json({ error: "Bunday oqituvchi topilmadi" });
+      return res.json({ message: "Bunday oqituvchi topilmadi" });
     }
 
     // Yaratilayotgan streamni konsolda ko'rish uchun qo'shamiz
@@ -161,15 +161,23 @@ router.post("/webhook", async (req, res) => {
 
 router.get("/test", async (req, res) => {
   const tests = await streamModel.find();
-  for (let i = 0; i < tests.length; i++) {
-    await streamModel.findByIdAndDelete(tests[i]._id);
-  }
+  // for (let i = 0; i < tests.length; i++) {
+  //   await streamModel.findByIdAndDelete(tests[i]._id);
+  // }
   res.json(tests.reverse());
 });
 
 router.get("/stream/:liveStreamId", async (req, res) => {
   const { liveStreamId } = req.params;
   try {
+    const findStream = await streamModel.findOne({ streamId: liveStreamId });
+    if (!findStream) {
+      return res.status(400).json({ message: "Bunday stream mavjud emas" });
+    }
+
+    if (!findStream.isEnded) {
+      return res.status(400).json({ message: "Bu stream hali tugallanmagan" });
+    }
     const { data } = await axios.get(`https://ws.api.video/videos`, {
       headers: {
         Authorization: `Bearer ${apiVideoToken}`, // Bu yerda API kalitingizni kiriting
@@ -182,7 +190,7 @@ router.get("/stream/:liveStreamId", async (req, res) => {
 
     res.json(stream.assets);
   } catch (error) {
-    res.status(error.response?.status || 500).json({ error: error.message });
+    res.status(error.response?.status || 500).json({ message: error.message });
   }
 });
 
@@ -250,13 +258,13 @@ router.get("/streams/soon", async (req, res) => {
 
     if (!streams.length) {
       return res.json({
-        error: "Hali boshlanmagan streamlar topilmadi",
+        message: "Hali boshlanmagan streamlar topilmadi",
       });
     }
 
     res.json(streams);
   } catch (error) {
-    res.json({ error: error.message });
+    res.json({ message: error.message });
   }
 });
 
@@ -265,7 +273,7 @@ router.get("/streams/all", async (req, res) => {
     const streams = await streamModel.find().sort({ createdAt: -1 });
     res.json(streams);
   } catch (error) {
-    res.json({ error: error.message });
+    res.json({ message: error.message });
   }
 });
 
@@ -274,7 +282,7 @@ router.get("/my-streams/:id", authMiddleware, async (req, res) => {
     const { id } = req.params;
     const teacher = await teacherModel.findById(id);
     if (!teacher) {
-      return res.json({ error: "Bunday id ga mos teacher topilmadi" });
+      return res.json({ message: "Bunday id ga mos teacher topilmadi" });
     }
     const streams = await streamModel.find();
     const uniqueStreams = streams.filter((c) => c.teacher.id == id);
@@ -285,7 +293,7 @@ router.get("/my-streams/:id", authMiddleware, async (req, res) => {
     const previous = uniqueStreams.filter((c) => (c.isEnded = true));
     res.json({ soon, live, previous });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -389,7 +397,7 @@ router.get("/streams/live", async (req, res) => {
     const streams = await streamModel.find({ isStart: true });
     res.json(streams.filter((c) => c.isEnded === false));
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -446,11 +454,11 @@ router.put("/streams/:id/start", authMiddleware, async (req, res) => {
       { new: true }
     );
     if (!stream) {
-      return res.status(404).json({ error: "Stream topilmadi" });
+      return res.status(404).json({ message: "Stream topilmadi" });
     }
     res.json(stream);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -512,7 +520,7 @@ router.put("/streams/:id/ended", authMiddleware, async (req, res) => {
     // Streamni mavjudligini tekshirish
     const stream = await streamModel.findById(id);
     if (!stream) {
-      return res.status(404).json({ error: "Stream topilmadi" });
+      return res.status(404).json({ message: "Stream topilmadi" });
     }
 
     // Streamni yangilash va muvaffaqiyatli yangilashni qaytarish
@@ -530,7 +538,7 @@ router.put("/streams/:id/ended", authMiddleware, async (req, res) => {
     });
   } catch (error) {
     console.error(error.message);
-    res.status(500).json({ error: "Streamni yangilashda xato" });
+    res.status(500).json({ message: "Streamni yangilashda xato" });
   }
 });
 

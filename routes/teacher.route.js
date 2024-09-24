@@ -71,10 +71,10 @@ router.post("/create-teacher", async (req, res) => {
 
       res.json({ token, teacher });
     } else {
-      res.status(400).json({ error: "Teacher yaratilmadi" });
+      res.status(400).json({ message: "Teacher yaratilmadi" });
     }
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 
@@ -139,7 +139,7 @@ router.post("/login-teacher", async (req, res) => {
     );
     res.json({ token, user });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 /**
@@ -235,7 +235,7 @@ router.get("/teacher/:id", async (req, res) => {
   try {
     const teacher = await teacherModel.findById(req.params.id);
     if (!teacher) {
-      return res.status(400).json({ error: "Bunday teacher topilmadi" });
+      return res.status(400).json({ message: "Bunday teacher topilmadi" });
     }
     const token = jwt.sign(
       { userId: teacher._id, role: teacher.role },
@@ -244,7 +244,7 @@ router.get("/teacher/:id", async (req, res) => {
     );
     res.json({ token, teacher });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 

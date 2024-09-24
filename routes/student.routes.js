@@ -72,7 +72,7 @@ router.post("/student/register", async (req, res) => {
   if (findPhone) {
     return res
       .status(400)
-      .json({ error: "Bu telefon raqam oldin royhatdan otgan" });
+      .json({ message: "Bu telefon raqam oldin royhatdan otgan" });
   }
 
   try {
@@ -234,7 +234,7 @@ router.get("/all-students", async (req, res) => {
     const students = await studentModel.find();
     res.json(students);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 });
 

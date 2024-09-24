@@ -35,11 +35,11 @@ router.post("/create-group", authMiddleware, async (req, res) => {
   try {
     const group = await groupModel.create(req.body);
     if (!group) {
-      return res.status(400).json({ error: "Gruppa yaratilmadi" });
+      return res.status(400).json({ message: "Gruppa yaratilmadi" });
     }
     res.json(group);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 
@@ -65,12 +65,12 @@ router.get("/get-groups", async (req, res) => {
   try {
     const groups = await groupModel.find();
     if (!groups) {
-      return res.status(400).json({ error: "Gruppalar topilmadi" });
+      return res.status(400).json({ message: "Gruppalar topilmadi" });
     }
 
-    res.json(groups);
+    res.status(201).json(groups);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 
@@ -103,11 +103,11 @@ router.get("/get-group/:id", async (req, res) => {
     const group = await groupModel.findById(id);
 
     if (!group) {
-      return res.status(400).json({ error: "Gruppa topilmadi" });
+      return res.status(400).json({ message: "Gruppa topilmadi" });
     }
     res.json(group);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 
@@ -151,11 +151,11 @@ router.put("/group/:id/edit", authMiddleware, async (req, res) => {
     await groupModel.findByIdAndUpdate(id, req.body);
     const group = await groupModel.findById(id);
     if (!group) {
-      return res.status(400).json({ error: "Gruppa ozgartirilmadi" });
+      return res.status(400).json({ message: "Gruppa ozgartirilmadi" });
     }
     res.json(group);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 
@@ -185,12 +185,12 @@ router.delete("/group/:id/delete", authMiddleware, async (req, res) => {
     const { id } = req.params;
     const currentGroup = await groupModel.findById(id);
     if (!currentGroup) {
-      return res.status(400).json({ error: "Bunday Gruppa topilmadi" });
+      return res.status(400).json({ message: "Bunday Gruppa topilmadi" });
     }
     await groupModel.findByIdAndDelete(id);
     res.json({ message: "Gruppa muaffaqiyatli ochirildi" });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 
