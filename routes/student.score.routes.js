@@ -172,7 +172,7 @@ router.post("/scores", async (req, res) => {
     const findStudent = await studentModel.findById(studentId);
 
     if (!findStudent) {
-      return res.status(400).json({ error: "Bunday student topilmadi" });
+      return res.status(400).json({ message: "Bunday student topilmadi" });
     }
 
     if (existingScore) {
