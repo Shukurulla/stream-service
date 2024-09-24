@@ -169,6 +169,12 @@ router.post("/scores", async (req, res) => {
       topic,
     });
 
+    const findStudent = await studentModel.findById(studentId);
+
+    if (!findStudent) {
+      return res.json({ error: "Bunday student topilmadi" });
+    }
+
     if (existingScore) {
       // Agar shu test avval yechilgan bo'lsa, mavjud natijani yangilash
       existingScore.score = score;
@@ -184,6 +190,11 @@ router.post("/scores", async (req, res) => {
         lesson,
         topic,
         score,
+        student: {
+          profileImage: findStudent.profileImage,
+          name: findStudent.name,
+          group: findStudent.group,
+        },
       });
 
       await newScore.save();
@@ -316,12 +327,6 @@ router.get("/lessons/:lesson", async (req, res) => {
       },
       { $sort: { totalTopicsCompleted: -1 } },
     ]);
-
-    if (!scores.length) {
-      return res
-        .status(404)
-        .json({ message: "Ushbu dars bo'yicha natijalar topilmadi" });
-    }
 
     res.status(200).json({
       message: `${lesson} darsiga tegishli studentlar natijalari`,
