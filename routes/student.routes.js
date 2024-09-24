@@ -70,7 +70,9 @@ router.post("/student/register", async (req, res) => {
   const findPhone = await studentModel.findOne({ phone });
 
   if (findPhone) {
-    return res.json({ error: "Bu telefon raqam oldin royhatdan otgan" });
+    return res
+      .status(400)
+      .json({ error: "Bu telefon raqam oldin royhatdan otgan" });
   }
 
   try {
