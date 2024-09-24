@@ -72,7 +72,7 @@ router.post("/stream/:id/feedback", verifyToken, async (req, res) => {
       { $set: { "rating.totalRating": totalRatings } }
     );
     const newStream = await streamModel.findById(id);
-    res.json(newStream);
+    res.status(200).json(newStream);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
