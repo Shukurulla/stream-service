@@ -123,16 +123,16 @@ router.get("/notifications/:studentId", async (req, res) => {
   try {
     const { studentId } = req.params;
 
+    const findStudent = await studentModel.findById(studentId);
+
+    if (!findStudent) {
+      return res.status(400).json({ message: "Bunday student topilmadi" });
+    }
+
     // Find all notifications for the student by their ID
     const notifications = await studentNotificationModel.find({
       student: studentId,
     });
-
-    if (notifications.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "Bu studentning notificationlari mavjud emas" });
-    }
 
     // Calculate the average rating for all notifications
     let totalRating = 0;
@@ -147,7 +147,7 @@ router.get("/notifications/:studentId", async (req, res) => {
 
     const averageRating = totalFeedbacks > 0 ? totalRating / totalFeedbacks : 0;
 
-    res.json({
+    res.status(200).json({
       notifications,
       averageRating,
     });
@@ -161,7 +161,7 @@ router.get("/notification/:userId/length", async (req, res) => {
     const { userId } = req.params;
     const student = await studentModel.findById(userId);
     if (!student) {
-      return res.json({ error: "Bunday Student topilmadi" });
+      return res.json({ message: "Bunday Student topilmadi" });
     }
     const findNotifications = await studentNotificationModel.find({
       student: userId,
@@ -170,7 +170,7 @@ router.get("/notification/:userId/length", async (req, res) => {
 
     res.json({ length: findNotifications.length });
   } catch (error) {
-    res.json({ error: error.message });
+    res.json({ message: error.message });
   }
 });
 
