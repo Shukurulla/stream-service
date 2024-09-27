@@ -347,7 +347,7 @@ router.get("/streams/previous", verifyToken, async (req, res) => {
 
     res.json(
       othersStreams
-        .sort((a, b) => new Date(b.planStream) - new Date(a.planStream))
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         .filter((c) => c.isEnded == true)
     );
   } catch (error) {
