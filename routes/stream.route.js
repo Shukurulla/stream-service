@@ -291,7 +291,13 @@ router.get("/my-streams/:id", authMiddleware, async (req, res) => {
     );
     const live = uniqueStreams.filter((c) => c.streamInfo.broadcasting == true);
     const previous = uniqueStreams.filter((c) => (c.isEnded = true));
-    res.json({ soon, live, previous });
+    res.json({
+      soon: soon.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+      live: live.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+      previous: previous.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      ),
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
