@@ -3,6 +3,7 @@ import teacherModel from "../models/teacher.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { verifyToken } from "../middleware/verifyToken.middleware.js";
+import { imageToUrl } from "../utils/imageToUrl.js";
 
 const router = express.Router();
 
@@ -56,13 +57,17 @@ const router = express.Router();
  */
 router.post("/create-teacher", async (req, res) => {
   try {
-    const { password } = req.body;
+    const { password, profileImage } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
+    console.log(profileImage);
+
+    const url = await imageToUrl(profileImage);
 
     const teacher = await teacherModel.create({
       ...req.body,
       originalPassword: password,
       password: hashedPassword,
+      profileImage: url,
     });
     if (teacher) {
       const token = jwt.sign({ userId: teacher._id }, process.env.JWT_SECRET, {

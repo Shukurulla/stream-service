@@ -270,7 +270,7 @@ router.get("/streams/soon", async (req, res) => {
 
 router.get("/streams/all", async (req, res) => {
   try {
-    const streams = await streamModel.find().sort({ createdAt: -1 });
+    const streams = await streamModel.find().sort({ createdAt: 1 });
     res.json(streams);
   } catch (error) {
     res.json({ message: error.message });
