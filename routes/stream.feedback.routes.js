@@ -55,6 +55,16 @@ router.post("/stream/:id/feedback", verifyToken, async (req, res) => {
   const { teacher, rate, feedback } = req.body;
   const { id } = req.params;
   const findTeacher = await teacherModel.findById(teacher.id);
+
+  const stream = await streamModel.findById(id);
+  const ratings = stream.rating.ratings.filter(
+    (c) => c.teacher.id == teacher.id
+  );
+
+  if (ratings.length > 0) {
+    return res.json({ message: "Siz oldin feedback bergansiz" });
+  }
+
   if (!findTeacher) {
     return res.status(400).json({ message: "Bunday teacher topilmadi" });
   }
