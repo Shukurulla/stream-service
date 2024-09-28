@@ -55,11 +55,6 @@ router.post("/stream/:id/feedback", verifyToken, async (req, res) => {
   const { id } = req.params;
 
   try {
-    const stream = await streamModel.findById(id);
-    if (!stream) {
-      return res.status(400).json({ message: "Bunday stream topilmadi" });
-    }
-
     await streamModel.updateOne(
       { _id: id },
       { $push: { "rating.ratings": { teacher, rate } } }
@@ -68,6 +63,7 @@ router.post("/stream/:id/feedback", verifyToken, async (req, res) => {
       { _id: id },
       { $push: { comments: { user: teacher, comment: feedback } } }
     );
+    const stream = await streamModel.findById(id);
     const totalRatings =
       stream.rating.ratings.reduce((sum, rating) => sum + rating.rate, 0) /
       stream.rating.ratings.length;
@@ -78,7 +74,6 @@ router.post("/stream/:id/feedback", verifyToken, async (req, res) => {
     const newStream = await streamModel.findById(id);
     res.status(200).json(newStream);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Server error: " + error.message });
   }
 });
