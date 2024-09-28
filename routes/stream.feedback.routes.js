@@ -65,18 +65,15 @@ router.post("/stream/:id/feedback", verifyToken, async (req, res) => {
       { _id: id },
       {
         $push: {
-          "rating.ratings": { teacher: { ...teacher, profileImage }, rate },
+          "rating.ratings": {
+            teacher: { ...teacher, profileImage },
+            rate,
+            comment: feedback,
+          },
         },
       }
     );
-    await streamModel.updateOne(
-      { _id: id },
-      {
-        $push: {
-          comments: { user: { ...teacher, profileImage }, comment: feedback },
-        },
-      }
-    );
+
     const stream = await streamModel.findById(id);
     const totalRatings =
       stream.rating.ratings.reduce((sum, rating) => sum + rating.rate, 0) /

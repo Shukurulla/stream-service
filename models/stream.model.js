@@ -90,6 +90,7 @@ const streamSchema = new mongoose.Schema(
             },
           },
           rate: { type: Number, min: 1, max: 5, required: true },
+          comment: { type: String, required: true },
           feedback: { type: String },
           date: { type: Date, default: Date.now },
           read: { type: Boolean, default: false },
