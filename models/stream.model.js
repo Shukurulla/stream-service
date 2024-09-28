@@ -79,6 +79,7 @@ const streamSchema = new mongoose.Schema(
         {
           teacher: {
             name: { type: String, required: true },
+            id: { type: String, required: true },
           },
           rate: { type: Number, min: 1, max: 5, required: true },
           feedback: { type: String },
