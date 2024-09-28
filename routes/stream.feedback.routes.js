@@ -79,7 +79,7 @@ router.post("/stream/:id/feedback", verifyToken, async (req, res) => {
     res.status(200).json(newStream);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error: " + error.message });
   }
 });
 
