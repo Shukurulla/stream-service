@@ -2,6 +2,7 @@ import express from "express";
 import authMiddleware from "../middleware/auth.middleware.js";
 import { verifyToken } from "../middleware/verifyToken.middleware.js";
 import streamModel from "../models/stream.model.js";
+import teacherModel from "../models/teacher.model.js";
 const router = express.Router();
 
 /**
@@ -53,15 +54,28 @@ const router = express.Router();
 router.post("/stream/:id/feedback", verifyToken, async (req, res) => {
   const { teacher, rate, feedback } = req.body;
   const { id } = req.params;
+  const findTeacher = await teacherModel.findById(teacher.id);
+  if (!findTeacher) {
+    return res.status(400).json({ message: "Bunday teacher topilmadi" });
+  }
+  const { profileImage } = findTeacher;
 
   try {
     await streamModel.updateOne(
       { _id: id },
-      { $push: { "rating.ratings": { teacher, rate } } }
+      {
+        $push: {
+          "rating.ratings": { teacher: { ...teacher, profileImage }, rate },
+        },
+      }
     );
     await streamModel.updateOne(
       { _id: id },
-      { $push: { comments: { user: teacher, comment: feedback } } }
+      {
+        $push: {
+          comments: { user: { ...teacher, profileImage }, comment: feedback },
+        },
+      }
     );
     const stream = await streamModel.findById(id);
     const totalRatings =
