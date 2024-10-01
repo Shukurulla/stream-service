@@ -59,7 +59,6 @@ router.post("/create-teacher", async (req, res) => {
   try {
     const { password, profileImage } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log(profileImage);
 
     const url = await imageToUrl(profileImage);
 

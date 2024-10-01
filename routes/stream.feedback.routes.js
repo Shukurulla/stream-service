@@ -140,6 +140,10 @@ router.get("/stream/:id/feedbacks", async (req, res) => {
     // Stream topish
     const stream = await streamModel.findById(id);
 
+    if (!stream) {
+      return res.status(404).json({ message: "Bunday stream topilmadi" });
+    }
+
     const rating = stream.rating;
     const comment = stream.comments;
 
