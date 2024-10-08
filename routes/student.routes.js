@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { verifyToken } from "../middleware/verifyToken.middleware.js";
 import percentModel from "../models/studentPersent.model.js";
+import authMiddleware from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
@@ -217,9 +218,9 @@ router.post("/student/login", async (req, res, next) => {
  *       401:
  *         description: Token noto'g'ri yoki muddati tugagan
  */
-router.get("/student/me", verifyToken, async (req, res) => {
+router.get("/student/me", authMiddleware, async (req, res) => {
   try {
-    const student = await studentModel.findById(req.user.userId); // JWT orqali id olinadi
+    const student = await studentModel.findById(req.userData.id); // JWT orqali id olinadi
     if (!student) {
       return res.status(404).json({ message: "Talaba topilmadi" });
     }
