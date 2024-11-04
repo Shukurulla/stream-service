@@ -10,6 +10,8 @@ let refreshToken = null;
 export const initTokens = () => {
   accessToken = process.env.API_VIDEO_KEY;
   refreshToken = process.env.API_VIDEO_REFRESH;
+  console.log("Local Access Token:", process.env.API_VIDEO_KEY);
+  console.log("Local Refresh Token:", process.env.API_VIDEO_REFRESH);
 
   if (!accessToken || !refreshToken) {
     console.error(
@@ -41,18 +43,21 @@ const isTokenExpired = (token) => {
 // Yangi access token olish funksiyasi
 const refreshAccessToken = async () => {
   try {
-    const response = await axios.post("https://ws.api.video/auth/refresh", {
-      refreshToken: refreshToken, // refreshToken global o'zgaruvchi
+    const response = await axios.post("https://ws.api.video/auth/api-key", {
+      apiKey: accessToken,
     });
 
-    console.log(response.data);
-
-    accessToken = response.data.access_token;
-    console.log("Yangi Access Token olindi:", accessToken);
+    if (response.data && response.data.access_token) {
+      accessToken = response.data.access_token;
+      refreshToken = response.data.refresh_token;
+      console.log("Yangi Access Token olindi:", accessToken);
+    } else {
+      throw new Error("Access token yangilanishida kutilmagan javob olindi.");
+    }
   } catch (error) {
     console.error(
       "Access tokenni yangilashda xatolik yuz berdi:",
-      error.message
+      error.response?.data || error.message
     );
     throw new Error("Access tokenni yangilashda xatolik yuz berdi");
   }
