@@ -10,6 +10,7 @@ import StudentSignRouter from "./routes/student.routes.js";
 import StudentNotificationRouter from "./routes/student.notification.routes.js";
 import GroupRouter from "./routes/group.routes.js";
 import swaggerUi from "swagger-ui-express";
+import tokenRouter from "./routes/token.router.js";
 import { generateSwaggerSpec } from "./swagger.js";
 import { tokenMiddleware, initTokens } from "./middleware/tokenMiddleware.js";
 import ScoreRouter from "./routes/student.score.routes.js";
@@ -57,7 +58,7 @@ app.use(StudentNotificationRouter);
 app.use(GroupRouter);
 app.use(ScoreRouter);
 app.use(PercentRouter);
-
+app.use(tokenRouter);
 // Generate Swagger spec dynamically
 const swaggerSpec = generateSwaggerSpec();
 
