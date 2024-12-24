@@ -15,7 +15,8 @@ import { generateSwaggerSpec } from "./swagger.js";
 import { tokenMiddleware, initTokens } from "./middleware/tokenMiddleware.js";
 import ScoreRouter from "./routes/student.score.routes.js";
 import PercentRouter from "./routes/percent.routes.js";
-
+import ThemeRouter from "./routes/theme.routes.js";
+import ThemeFeedbackRouter from "./routes/themeFeedback.routes.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -59,6 +60,8 @@ app.use(GroupRouter);
 app.use(ScoreRouter);
 app.use(PercentRouter);
 app.use(tokenRouter);
+app.use(ThemeRouter);
+app.use(ThemeFeedbackRouter);
 // Generate Swagger spec dynamically
 const swaggerSpec = generateSwaggerSpec();
 

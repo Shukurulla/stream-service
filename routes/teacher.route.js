@@ -66,7 +66,7 @@ router.post("/create-teacher", async (req, res) => {
       ...req.body,
       originalPassword: password,
       password: hashedPassword,
-      profileImage: url,
+      profileImage,
     });
     if (teacher) {
       const token = jwt.sign({ userId: teacher._id }, process.env.JWT_SECRET, {
