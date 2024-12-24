@@ -3,6 +3,7 @@ import studentNotificationModel from "../models/student.notification.model.js";
 import authMiddleware from "../middleware/auth.middleware.js";
 import Stream from "../models/stream.model.js";
 import studentModel from "../models/student.model.js";
+import teacherModel from "../models/teacher.model.js";
 
 const router = Router();
 
@@ -68,18 +69,58 @@ const router = Router();
  */
 router.post("/notifications", async (req, res) => {
   try {
-    const notificationData = req.body;
-    const stream = Stream.findById(notificationData.stream.streamId);
-    if (!stream) {
-      return res.json({ error: "Bunday stream topilmadu" });
+    const { stream, student, from, rate, feedback } = req.body;
+    const findStream = await Stream.findById(stream);
+    const findStudent = await studentModel.findById(student);
+    const findTeacher = await teacherModel.findById(from);
+    if (feedback == "") {
+      return res
+        .status(400)
+        .json({ message: "Feedback bosh bolmasligi kerak" });
+    }
+    if (isNaN(rate)) {
+      return res
+        .status(400)
+        .json({ message: "Ratening malumot turi Number bolishi kerak" });
+    }
+    if (!findStream) {
+      return res.status(400).json({ message: "Bunday stream topilmadi" });
+    }
+    if (!findStudent) {
+      return res.status(400).json({ message: "Bunday student topilmadi" });
+    }
+    if (!findTeacher) {
+      return res.status(400).json({ message: "Bunday teacher topilmadi" });
     }
 
-    // Create and save the new notification
-    const newNotification = await studentNotificationModel.create(
-      notificationData
-    );
-
-    res.status(201).json(newNotification);
+    const schema = {
+      rate,
+      feedback,
+      stream: {
+        streamId: findStream._id,
+        title: findStream.title,
+        name: findStream.teacher.name,
+        profileImage: findStream.teacher.profileImage,
+      },
+      student: {
+        name: findStudent.name,
+        group: findStudent.group,
+        profileImage: findStudent.profileImage,
+      },
+      from: {
+        profileImage: findTeacher.profileImage,
+        name: findTeacher.name,
+        science: findTeacher.science,
+        id: findTeacher._id,
+      },
+    };
+    const notification = await studentNotificationModel.create(schema);
+    if (!notification) {
+      return res
+        .status(500)
+        .json({ message: "Notification yuborishda xatolik ketdi" });
+    }
+    res.json(notification);
   } catch (error) {
     res.status(500).json({ message: "Error creating notification", error });
   }

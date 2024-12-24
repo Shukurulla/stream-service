@@ -23,9 +23,18 @@ const studentNotificationModel = mongoose.model("studentNotification", {
     },
   },
   student: {
-    // Student _id
-    type: mongoose.Types.ObjectId,
-    required: true,
+    name: {
+      type: String,
+      required: true,
+    },
+    group: {
+      type: String,
+      required: true,
+    },
+    profileImage: {
+      type: String,
+      required: true,
+    },
   },
   from: {
     profileImage: {
@@ -39,6 +48,10 @@ const studentNotificationModel = mongoose.model("studentNotification", {
     science: {
       type: String,
       requrired: true,
+    },
+    id: {
+      type: mongoose.Types.ObjectId,
+      required: true,
     },
   },
   rate: {

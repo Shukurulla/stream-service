@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { verifyToken } from "../middleware/verifyToken.middleware.js";
 import percentModel from "../models/studentPersent.model.js";
 import authMiddleware from "../middleware/auth.middleware.js";
+import groupModel from "../models/group.model.js";
 
 const router = express.Router();
 
@@ -109,6 +110,20 @@ router.post("/student/register", async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
+  }
+});
+
+router.get("/student/by-group/:number", async (req, res) => {
+  try {
+    const { number } = req.params;
+    const findGroup = await groupModel.findOne({ name: number });
+    if (!findGroup) {
+      res.status(400).json({ error: "Bunday group topilmadi" });
+    }
+    const findStudents = await studentModel.find({ group: number });
+    res.json(findStudents);
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message, error });
   }
 });
 
