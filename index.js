@@ -17,6 +17,7 @@ import ScoreRouter from "./routes/student.score.routes.js";
 import PercentRouter from "./routes/percent.routes.js";
 import ThemeRouter from "./routes/theme.routes.js";
 import ThemeFeedbackRouter from "./routes/themeFeedback.routes.js";
+import fileUpload from "express-fileupload";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -28,9 +29,9 @@ app.use(
     credentials: true,
   })
 );
-
+app.use(fileUpload());
 app.use(express.json());
-
+app.use(express.urlencoded({ extended: true }));
 // Dastlabki tokenlarni yuklash
 initTokens();
 

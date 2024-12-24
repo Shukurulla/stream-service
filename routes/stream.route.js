@@ -197,8 +197,7 @@ router.get("/stream/:liveStreamId", async (req, res) => {
     const stream = data.data.filter(
       (c) => c.source.liveStream.liveStreamId === liveStreamId
     )[0];
-
-    res.json(stream.assets);
+    res.json({ stream: findStream, assets: stream.assets });
   } catch (error) {
     res.status(error.response?.status || 500).json({ message: error.message });
   }
