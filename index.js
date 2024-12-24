@@ -32,6 +32,9 @@ app.use(
 app.use(fileUpload());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.set(express.static("public"));
+
 // Dastlabki tokenlarni yuklash
 initTokens();
 

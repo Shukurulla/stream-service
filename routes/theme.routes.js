@@ -16,8 +16,8 @@ router.get("/theme/all", async (req, res) => {
 });
 router.get("/theme/my-theme/:id", async (req, res) => {
   try {
-    const myThemes = await ThemeModel.find({ teacher: req.params.id });
-
+    const themes = await ThemeModel.find();
+    const myThemes = themes.filter((c) => c.teacher.id == req.params.id);
     res.json(myThemes);
   } catch (error) {
     res.status(error.status || 500).json({ error, message: error.message });
