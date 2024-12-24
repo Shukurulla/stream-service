@@ -15,10 +15,18 @@ router.get("/feedbacks/:id", async (req, res) => {
       return res.status(400).json({ message: "Bunday teacher topilmadi" });
     }
     const streams = await Stream.find();
-    const findStream = streams.filter((c) => c.teacher.id == req.params.id);
+    const findStream = streams
+      .filter((c) => c.teacher.id == req.params.id)
+      .map((item) => {
+        return { isStream: true, item };
+      });
 
     const themes = await ThemeModel.find();
-    const findThemes = themes.filter((c) => c.teacher.id == req.params.id);
+    const findThemes = themes
+      .filter((c) => c.teacher.id == req.params.id)
+      .map((item) => {
+        return { isStream: false, item };
+      });
 
     res.json(findStream.concat(findThemes));
   } catch (error) {
