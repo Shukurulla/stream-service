@@ -106,6 +106,7 @@ router.post("/notifications", async (req, res) => {
         name: findStudent.name,
         group: findStudent.group,
         profileImage: findStudent.profileImage,
+        id: findStudent._id,
       },
       from: {
         profileImage: findTeacher.profileImage,

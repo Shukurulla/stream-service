@@ -35,6 +35,10 @@ const studentNotificationModel = mongoose.model("studentNotification", {
       type: String,
       required: true,
     },
+    id: {
+      type: mongoose.Types.ObjectId,
+      required: true,
+    },
   },
   from: {
     profileImage: {
