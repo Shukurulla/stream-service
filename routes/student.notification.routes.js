@@ -7,6 +7,13 @@ import teacherModel from "../models/teacher.model.js";
 
 const router = Router();
 
+router.get("/notifications/teacher/:id", async (req, res) => {
+  try {
+    const notifications = await studentNotificationModel.find();
+    res.json(notifications);
+  } catch (error) {}
+});
+
 /**
  * @swagger
  * /notifications:

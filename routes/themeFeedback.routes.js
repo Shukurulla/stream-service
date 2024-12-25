@@ -16,9 +16,13 @@ router.get("/feedbacks/:id", async (req, res) => {
     }
     const streams = await Stream.find();
     const findStream = streams
-      .filter((c) => c.teacher.id == req.params.id)
+      .flatMap((stream) =>
+        stream.rating.ratings.filter(
+          (rating) => rating.teacher.id === req.params.id
+        )
+      )
       .map((item) => {
-        return { isStream: true, item };
+        return { item, isStream: true };
       });
 
     const themes = await ThemeModel.find();
