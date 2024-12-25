@@ -5,6 +5,16 @@ import streamModel from "../models/stream.model.js";
 import teacherModel from "../models/teacher.model.js";
 const router = express.Router();
 
+router.get("/feedbacks/", authMiddleware, async (req, res) => {
+  try {
+    const { userId } = await req.userData;
+    const findTecher = await teacherModel.findById(userId);
+    if (!findTeacher) {
+      return res.status(400).json({ message: "Bunday teacher topilmadi" });
+    }
+  } catch (error) {}
+});
+
 /**
  * @swagger
  * /stream/{id}/feedback:

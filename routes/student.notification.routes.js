@@ -7,12 +7,20 @@ import teacherModel from "../models/teacher.model.js";
 
 const router = Router();
 
-router.get("/notifications/teacher/:id", async (req, res) => {
-  try {
-    const notifications = await studentNotificationModel.find();
-    res.json(notifications);
-  } catch (error) {}
-});
+router.get(
+  "/notifications/teacher/:number",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { userId } = req.userData;
+      const notifications = await studentNotificationModel.find({
+        "from.id": userId,
+        "student.group": req.params.number,
+      });
+      res.json(notifications);
+    } catch (error) {}
+  }
+);
 
 /**
  * @swagger
