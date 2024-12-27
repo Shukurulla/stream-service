@@ -18,8 +18,17 @@ import PercentRouter from "./routes/percent.routes.js";
 import ThemeRouter from "./routes/theme.routes.js";
 import ThemeFeedbackRouter from "./routes/themeFeedback.routes.js";
 import fileUpload from "express-fileupload";
+import FileRouter from "./routes/files.routes.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+import { v2 as cloudinary } from "cloudinary";
+
+// Cloudinary sozlamalari
+cloudinary.config({
+  cloud_name: "djsdapm3z", // Cloudinary Dashboard'dan oling
+  api_key: "717997715311428",
+  api_secret: "Aob_1Si2WfnE3k70RWDyZAOdk0E",
+});
 
 const app = express();
 app.use(
@@ -66,6 +75,7 @@ app.use(PercentRouter);
 app.use(tokenRouter);
 app.use(ThemeRouter);
 app.use(ThemeFeedbackRouter);
+app.use(FileRouter);
 // Generate Swagger spec dynamically
 const swaggerSpec = generateSwaggerSpec();
 
