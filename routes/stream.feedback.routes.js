@@ -8,7 +8,7 @@ const router = express.Router();
 router.get("/feedbacks/", authMiddleware, async (req, res) => {
   try {
     const { userId } = await req.userData;
-    const findTecher = await teacherModel.findById(userId);
+    const findTeacher = await teacherModel.findById(userId);
     if (!findTeacher) {
       return res.status(400).json({ message: "Bunday teacher topilmadi" });
     }

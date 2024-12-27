@@ -4,6 +4,7 @@ import authMiddleware from "../middleware/auth.middleware.js";
 import Stream from "../models/stream.model.js";
 import studentModel from "../models/student.model.js";
 import teacherModel from "../models/teacher.model.js";
+import ThemeFeedbackModel from "../models/theme-feedback.model.js";
 
 const router = Router();
 
@@ -14,6 +15,10 @@ router.get(
     try {
       const { userId } = req.userData;
       const notifications = await studentNotificationModel.find({
+        "from.id": userId,
+        "student.group": req.params.number,
+      });
+      const themeFeedbacks = await ThemeFeedbackModel.find({
         "from.id": userId,
         "student.group": req.params.number,
       });

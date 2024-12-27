@@ -12,7 +12,7 @@ const streamSchema = new mongoose.Schema(
       trim: true,
     },
     planStream: {
-      type: Date,
+      type: String,
       default: new Date(),
     },
     classRoom: {
