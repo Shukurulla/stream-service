@@ -169,6 +169,7 @@ router.get("/test", async (req, res) => {
 
 router.get("/stream/:liveStreamId", async (req, res) => {
   const { liveStreamId } = req.params;
+
   try {
     const findStream = await streamModel.findOne({ streamId: liveStreamId });
     if (!findStream) {
@@ -179,24 +180,38 @@ router.get("/stream/:liveStreamId", async (req, res) => {
       return res.status(400).json({ message: "Bu stream hali tugallanmagan" });
     }
 
-    const info = await axios.get(`https://ws.api.video/videos`, {
-      headers: {
-        Authorization: `Bearer ${apiVideoToken}`, // Bu yerda API kalitingizni kiriting
-      },
-    });
+    const allVideos = [];
+    let currentPage = 1;
+    let totalPages = 1;
 
-    const { data } = await axios.get(
-      `https://ws.api.video/videos?currentPage=1&pageSize=${info.data.pagination.itemsTotal}`,
-      {
-        headers: {
-          Authorization: `Bearer ${apiVideoToken}`, // Bu yerda API kalitingizni kiriting
-        },
-      }
+    do {
+      const response = await axios.get(
+        `https://ws.api.video/videos?currentPage=${currentPage}&pageSize=25`,
+        {
+          headers: {
+            Authorization: `Bearer ${apiVideoToken}`, // API kalitingizni kiriting
+          },
+        }
+      );
+
+      allVideos.push(...response.data.data);
+
+      // Sahifalar sonini aniqlash
+      totalPages = response.data.pagination.pagesTotal;
+      currentPage++;
+    } while (currentPage <= totalPages);
+
+    // Maqsadli streamni filtr qilish
+    const stream = allVideos.find(
+      (video) => video.source.liveStream.liveStreamId === liveStreamId
     );
 
-    const stream = data.data.filter(
-      (c) => c.source.liveStream.liveStreamId === liveStreamId
-    )[0];
+    if (!stream) {
+      return res
+        .status(404)
+        .json({ message: "Bu streamga tegishli video topilmadi" });
+    }
+
     res.json({ stream: findStream, assets: stream.assets });
   } catch (error) {
     res.status(error.response?.status || 500).json({ message: error.message });
