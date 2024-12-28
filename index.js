@@ -38,11 +38,12 @@ app.use(
     credentials: true,
   })
 );
+
 app.use(fileUpload());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.set(express.static("public"));
+app.use("/public", express.static(path.join(__dirname, "public")));
 
 // Dastlabki tokenlarni yuklash
 initTokens();
@@ -78,6 +79,23 @@ app.use(ThemeFeedbackRouter);
 app.use(FileRouter);
 // Generate Swagger spec dynamically
 const swaggerSpec = generateSwaggerSpec();
+app.post("/files/create", async (req, res) => {
+  try {
+    if (!req.files || !req.files.file) {
+      return res.status(400).send("File is required");
+    }
+
+    const file = req.files.file;
+    const filePath = `/public/files/${Date.now()}_${file.name}`;
+
+    // Faylni saqlash
+    file.mv(path.join(__dirname, filePath), (err) => {
+      if (err) return res.status(500).send(err);
+    });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
 
 // Swaggerni o'rnatish
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

@@ -47,6 +47,8 @@ const refreshAccessToken = async () => {
       apiKey: accessToken,
     });
 
+    console.log("API javobi:", response.data);
+
     if (response.data && response.data.access_token) {
       accessToken = response.data.access_token;
       refreshToken = response.data.refresh_token;
@@ -59,7 +61,6 @@ const refreshAccessToken = async () => {
       "Access tokenni yangilashda xatolik yuz berdi:",
       error.response?.data || error.message
     );
-    throw new Error("Access tokenni yangilashda xatolik yuz berdi");
   }
 };
 
