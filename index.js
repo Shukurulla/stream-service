@@ -25,6 +25,7 @@ import { v2 as cloudinary } from "cloudinary";
 import teacherModel from "./models/teacher.model.js";
 import groupModel from "./models/group.model.js";
 import FileModel from "./models/file.model.js";
+import slugify from "slugify";
 
 // Cloudinary sozlamalari
 cloudinary.config({
@@ -84,7 +85,6 @@ app.use(FileRouter);
 const swaggerSpec = generateSwaggerSpec();
 app.post("/files/create", async (req, res) => {
   try {
-    console.log(req.body);
     const { title, group, teacherId, description } = req.body;
     if (!req.files || !req.files.file) {
       return res.status(400).send("File is required");
@@ -98,8 +98,12 @@ app.post("/files/create", async (req, res) => {
     if (!findGroup) {
       return res.status(400).send("Group topilmadi");
     }
+
     const file = req.files.file;
-    const filePath = `/public/files/${Date.now()}_${file.name}`;
+
+    // Fayl nomini slug formatiga o‘tkazish
+    const slug = slugify(file.name, { lower: true, strict: true });
+    const filePath = `/public/files/${Date.now()}_${slug}`;
 
     // Faylni saqlash
     file.mv(path.join(__dirname, filePath), async (err) => {
@@ -120,9 +124,10 @@ app.post("/files/create", async (req, res) => {
             name: findTeacher.name,
             science: findTeacher.science,
             profileImage: findTeacher.profileImage,
-            id: findTeacher._id, // Bu yerda 'profileImage._id' noto'g'ri, 'findTeacher._id' bo'lishi kerak
+            id: findTeacher._id,
           },
           fileUrl: filePath,
+          slug, // Slugni qo'shish
         };
         const fileDB = await FileModel.create(fileSchema);
         if (!fileDB) {
