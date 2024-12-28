@@ -22,6 +22,9 @@ import FileRouter from "./routes/files.routes.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 import { v2 as cloudinary } from "cloudinary";
+import teacherModel from "./models/teacher.model.js";
+import groupModel from "./models/group.model.js";
+import FileModel from "./models/file.model.js";
 
 // Cloudinary sozlamalari
 cloudinary.config({
@@ -81,10 +84,19 @@ app.use(FileRouter);
 const swaggerSpec = generateSwaggerSpec();
 app.post("/files/create", async (req, res) => {
   try {
+    const { title, group, teacherId, description } = req.body;
     if (!req.files || !req.files.file) {
       return res.status(400).send("File is required");
     }
 
+    const findTeacher = await teacherModel.findById(teacherId);
+    if (!findTeacher) {
+      return res.status(400).send("Teacher topilmadi");
+    }
+    const findGroup = await groupModel.findOne({ name: group });
+    if (!findGroup) {
+      return res.status(400).send("Group topilmadi");
+    }
     const file = req.files.file;
     const filePath = `/public/files/${Date.now()}_${file.name}`;
 
@@ -92,6 +104,27 @@ app.post("/files/create", async (req, res) => {
     file.mv(path.join(__dirname, filePath), (err) => {
       if (err) return res.status(500).send(err);
     });
+
+    const fileSchema = {
+      title,
+      description,
+      group: {
+        name: findGroup.name,
+        id: findGroup._id,
+      },
+      from: {
+        name: findTeacher.name,
+        science: findTeacher.science,
+        profileImage: findTeacher.profileImage,
+        id: profileImage._id,
+      },
+      fileUrl: filePath,
+    };
+    const fileDB = await FileModel.create(fileSchema);
+    if (!fileDB) {
+      return res.status(400).json({ message: "File yaratilmadi" });
+    }
+    res.json(fileDB);
   } catch (err) {
     res.status(500).send(err.message);
   }
