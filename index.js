@@ -84,6 +84,7 @@ app.use(FileRouter);
 const swaggerSpec = generateSwaggerSpec();
 app.post("/files/create", async (req, res) => {
   try {
+    console.log(req.body);
     const { title, group, teacherId, description } = req.body;
     if (!req.files || !req.files.file) {
       return res.status(400).send("File is required");
@@ -101,30 +102,37 @@ app.post("/files/create", async (req, res) => {
     const filePath = `/public/files/${Date.now()}_${file.name}`;
 
     // Faylni saqlash
-    file.mv(path.join(__dirname, filePath), (err) => {
-      if (err) return res.status(500).send(err);
-    });
+    file.mv(path.join(__dirname, filePath), async (err) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
 
-    const fileSchema = {
-      title,
-      description,
-      group: {
-        name: findGroup.name,
-        id: findGroup._id,
-      },
-      from: {
-        name: findTeacher.name,
-        science: findTeacher.science,
-        profileImage: findTeacher.profileImage,
-        id: profileImage._id,
-      },
-      fileUrl: filePath,
-    };
-    const fileDB = await FileModel.create(fileSchema);
-    if (!fileDB) {
-      return res.status(400).json({ message: "File yaratilmadi" });
-    }
-    res.json(fileDB);
+      // Fayl muvaffaqiyatli saqlangandan so'ng DB ga qo'shish
+      try {
+        const fileSchema = {
+          title,
+          description,
+          group: {
+            name: findGroup.name,
+            id: findGroup._id,
+          },
+          from: {
+            name: findTeacher.name,
+            science: findTeacher.science,
+            profileImage: findTeacher.profileImage,
+            id: findTeacher._id, // Bu yerda 'profileImage._id' noto'g'ri, 'findTeacher._id' bo'lishi kerak
+          },
+          fileUrl: filePath,
+        };
+        const fileDB = await FileModel.create(fileSchema);
+        if (!fileDB) {
+          return res.status(400).json({ message: "File yaratilmadi" });
+        }
+        res.json(fileDB);
+      } catch (err) {
+        res.status(500).send("Serverda xatolik yuz berdi: " + err.message);
+      }
+    });
   } catch (err) {
     res.status(500).send(err.message);
   }

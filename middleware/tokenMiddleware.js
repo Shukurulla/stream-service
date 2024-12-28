@@ -10,18 +10,6 @@ let refreshToken = null;
 export const initTokens = () => {
   accessToken = process.env.API_VIDEO_KEY;
   refreshToken = process.env.API_VIDEO_REFRESH;
-  console.log("Local Access Token:", process.env.API_VIDEO_KEY);
-  console.log("Local Refresh Token:", process.env.API_VIDEO_REFRESH);
-
-  if (!accessToken || !refreshToken) {
-    console.error(
-      "ACCESS_TOKEN yoki REFRESH_TOKEN environment o'zgaruvchilari o'rnatilmagan"
-    );
-  } else {
-    console.log("Tokenlar muvaffaqiyatli yuklandi");
-    console.log("Access Token:", accessToken);
-    console.log("Refresh Token:", refreshToken);
-  }
 };
 
 // Token muddati tugaganini tekshiradigan funksiya
@@ -52,7 +40,6 @@ const refreshAccessToken = async () => {
     if (response.data && response.data.access_token) {
       accessToken = response.data.access_token;
       refreshToken = response.data.refresh_token;
-      console.log("Yangi Access Token olindi:", accessToken);
     } else {
       throw new Error("Access token yangilanishida kutilmagan javob olindi.");
     }
