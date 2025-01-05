@@ -32,7 +32,7 @@ router.get("/feedbacks/:id", async (req, res) => {
         return { isStream: false, item };
       });
 
-    res.json(findStream.concat(findThemes));
+    res.json(findStream.concat(findThemes).sort({ createdAt: 1 }));
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message, error });
   }
@@ -41,7 +41,9 @@ router.get("/feedbacks/:id", async (req, res) => {
 router.get("/theme-feedback/all", async (req, res) => {
   try {
     const feedbacks = await ThemeFeedbackModel.find();
-    res.json(feedbacks);
+    res.json(
+      feedbacks.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    );
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message, error });
   }

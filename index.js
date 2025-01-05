@@ -26,6 +26,7 @@ import teacherModel from "./models/teacher.model.js";
 import groupModel from "./models/group.model.js";
 import FileModel from "./models/file.model.js";
 import slugify from "slugify";
+import PlannedRouter from "./routes/planned.routes.js";
 
 // Cloudinary sozlamalari
 cloudinary.config({
@@ -81,6 +82,7 @@ app.use(tokenRouter);
 app.use(ThemeRouter);
 app.use(ThemeFeedbackRouter);
 app.use(FileRouter);
+app.use(PlannedRouter);
 // Generate Swagger spec dynamically
 const swaggerSpec = generateSwaggerSpec();
 app.post("/files/create", async (req, res) => {
