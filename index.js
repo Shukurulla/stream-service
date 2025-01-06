@@ -103,17 +103,14 @@ app.post("/files/create", async (req, res) => {
 
     const file = req.files.file;
 
-    // Fayl nomini slug formatiga o‘tkazish
     const slug = slugify(file.name, { lower: true, strict: true });
     const filePath = `/public/files/${Date.now()}_${slug}`;
 
-    // Faylni saqlash
     file.mv(path.join(__dirname, filePath), async (err) => {
       if (err) {
         return res.status(500).send(err);
       }
 
-      // Fayl muvaffaqiyatli saqlangandan so'ng DB ga qo'shish
       try {
         const fileSchema = {
           title,
@@ -129,7 +126,7 @@ app.post("/files/create", async (req, res) => {
             id: findTeacher._id,
           },
           fileUrl: filePath,
-          slug, // Slugni qo'shish
+          slug,
         };
         const fileDB = await FileModel.create(fileSchema);
         if (!fileDB) {

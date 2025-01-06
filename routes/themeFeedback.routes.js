@@ -5,6 +5,7 @@ import teacherModel from "../models/teacher.model.js";
 import ThemeFeedbackModel from "../models/theme-feedback.model.js";
 import ThemeModel from "../models/theme.model.js";
 import Stream from "../models/stream.model.js";
+import { all } from "axios";
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ router.get("/feedbacks/:id", async (req, res) => {
     if (!findTeacher) {
       return res.status(400).json({ message: "Bunday teacher topilmadi" });
     }
+
     const streams = await Stream.find();
     const findStream = streams
       .flatMap((stream) =>
@@ -22,17 +24,22 @@ router.get("/feedbacks/:id", async (req, res) => {
         )
       )
       .map((item) => {
-        return { item, isStream: true };
+        return { item, isStream: true, createdAt: item.createdAt };
       });
 
     const themes = await ThemeModel.find();
     const findThemes = themes
       .filter((c) => c.teacher.id == req.params.id)
       .map((item) => {
-        return { isStream: false, item };
+        return { isStream: false, item, createdAt: item.createdAt };
       });
 
-    res.json(findStream.concat(findThemes).sort({ createdAt: 1 }));
+    const combined = findStream.concat(findThemes);
+
+    // To'g'ri `sort` metodi
+    combined.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+    res.json(combined);
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message, error });
   }
@@ -42,7 +49,9 @@ router.get("/theme-feedback/all", async (req, res) => {
   try {
     const feedbacks = await ThemeFeedbackModel.find();
     res.json(
-      feedbacks.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      [...feedbacks].sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      )
     );
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message, error });
@@ -58,7 +67,11 @@ router.get("/theme-feedback/by-theme/:id", async (req, res) => {
     const filteredFeedback = feedbacks.filter(
       (c) => c.theme._id == req.params.id
     );
-    res.json(filteredFeedback);
+    res.json(
+      [...filteredFeedback].sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      )
+    );
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message, error });
   }
@@ -141,5 +154,17 @@ router.delete(
     }
   }
 );
+
+router.delete("/theme-feedback/all-delete", async (req, res) => {
+  try {
+    const allFeedbacks = await ThemeFeedbackModel.find();
+    for (let i = 0; i < allFeedbacks.length; i++) {
+      await ThemeFeedbackModel.findByIdAndDelete(allFeedbacks[i]._id);
+    }
+    res.json(allFeedbacks);
+  } catch (error) {
+    res.json(error);
+  }
+});
 
 export default router;
