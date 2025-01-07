@@ -6,6 +6,8 @@ import { verifyToken } from "../middleware/verifyToken.middleware.js";
 import percentModel from "../models/studentPersent.model.js";
 import authMiddleware from "../middleware/auth.middleware.js";
 import groupModel from "../models/group.model.js";
+import ThemeModel from "../models/theme.model.js";
+import ThemeFeedbackModel from "../models/theme-feedback.model.js";
 
 const router = express.Router();
 
@@ -121,19 +123,45 @@ router.get("/student/by-group/:number", async (req, res) => {
       res.status(400).json({ error: "Bunday group topilmadi" });
     }
     const findStudents = await studentModel.find({ group: number });
-    res.json(
-      findStudents.map((item) => {
-        return {
-          _id: item._id,
-          name: item.name,
-          password: item.password,
-          phone: item.phone,
-          group: item.group,
-          profileImage: item.profileImage,
-          feedbackStatus: "success",
-        };
-      })
-    );
+    res.json(findStudents);
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message, error });
+  }
+});
+router.get("/student/by-group-theme/:number/:theme_id", async (req, res) => {
+  try {
+    const { number, theme_id } = req.params;
+
+    const findTheme = await ThemeModel.findById(theme_id);
+    if (!findTheme) {
+      return res.status(400).json({ message: "Bunday theme topilmadi" });
+    }
+
+    const feedbacks = await ThemeFeedbackModel.find();
+    const filteredFeedbacks = feedbacks
+      .filter((c) => c.theme._id.toString() === theme_id)
+      .map((item) => item.student.id.toString());
+
+    const findGroup = await groupModel.findOne({ name: number });
+    if (!findGroup) {
+      return res.status(400).json({ error: "Bunday group topilmadi" });
+    }
+
+    const findStudents = await studentModel.find({ group: number });
+
+    const studentsWithFeedback = findStudents.map((item) => {
+      return {
+        _id: item._id,
+        name: item.name,
+        password: item.password,
+        phone: item.phone,
+        group: item.group,
+        profileImage: item.profileImage,
+        isSentFeedback: filteredFeedbacks.includes(item._id.toString()),
+      };
+    });
+
+    res.json(studentsWithFeedback);
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message, error });
   }
