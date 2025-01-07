@@ -125,7 +125,7 @@ app.post("/files/create", async (req, res) => {
             profileImage: findTeacher.profileImage,
             id: findTeacher._id,
           },
-          fileUrl: filePath,
+          fileUrl: "http://45.134.39.117:3002" + filePath,
           slug,
         };
         const fileDB = await FileModel.create(fileSchema);
