@@ -121,7 +121,19 @@ router.get("/student/by-group/:number", async (req, res) => {
       res.status(400).json({ error: "Bunday group topilmadi" });
     }
     const findStudents = await studentModel.find({ group: number });
-    res.json(findStudents);
+    res.json(
+      findStudents.map((item) => {
+        return {
+          _id: item._id,
+          name: item.name,
+          password: item.password,
+          phone: item.phone,
+          group: item.group,
+          profileImage: item.profileImage,
+          feedbackStatus: "success",
+        };
+      })
+    );
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message, error });
   }
