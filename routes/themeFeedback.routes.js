@@ -120,6 +120,7 @@ router.post("/theme-feedback/create", authMiddleware, async (req, res) => {
     res.status(error.status || 500).json({ message: error.message, error });
   }
 });
+
 router.put("/theme-feedback/edit/:id", authMiddleware, async (req, res) => {
   try {
     const findFeedback = await ThemeFeedbackModel.findById(req.params.id);
