@@ -85,9 +85,14 @@ app.use(FileRouter);
 app.use(PlannedRouter);
 // Generate Swagger spec dynamically
 const swaggerSpec = generateSwaggerSpec();
+
 app.post("/files/create", async (req, res) => {
+  console.log("Body: ", req.body); // body tarkibini tekshirish
+  console.log("Files: ", req.files);
   try {
+    console.log(req.files); // Faylni tekshirish uchun
     const { title, group, teacherId, description } = req.body;
+
     if (!req.files || !req.files.file) {
       return res.status(400).send("File is required");
     }
@@ -96,6 +101,7 @@ app.post("/files/create", async (req, res) => {
     if (!findTeacher) {
       return res.status(400).send("Teacher topilmadi");
     }
+
     const findGroup = await groupModel.findOne({ name: group });
     if (!findGroup) {
       return res.status(400).send("Group topilmadi");
@@ -104,11 +110,17 @@ app.post("/files/create", async (req, res) => {
     const file = req.files.file;
 
     const slug = slugify(file.name, { lower: true, strict: true });
-    const filePath = `/public/files/${Date.now()}_${slug}`;
+    const filePath = path.join(
+      __dirname,
+      "public",
+      "files",
+      `${Date.now()}_${slug}`
+    );
 
-    file.mv(path.join(__dirname, filePath), async (err) => {
+    file.mv(filePath, async (err) => {
       if (err) {
-        return res.status(500).send(err);
+        console.error("Faylni saqlashda xatolik:", err);
+        return res.status(500).send("Faylni saqlashda xatolik yuz berdi");
       }
 
       try {
@@ -125,19 +137,23 @@ app.post("/files/create", async (req, res) => {
             profileImage: findTeacher.profileImage,
             id: findTeacher._id,
           },
-          fileUrl: "http://45.134.39.117:3002" + filePath,
+          fileUrl:
+            "http://45.134.39.117:3002/public/files/" + `${Date.now()}_${slug}`,
           slug,
         };
+
         const fileDB = await FileModel.create(fileSchema);
         if (!fileDB) {
           return res.status(400).json({ message: "File yaratilmadi" });
         }
         res.json(fileDB);
       } catch (err) {
+        console.error("Server xatosi:", err.message);
         res.status(500).send("Serverda xatolik yuz berdi: " + err.message);
       }
     });
   } catch (err) {
+    console.error("Xatolik:", err.message);
     res.status(500).send(err.message);
   }
 });

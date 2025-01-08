@@ -24,6 +24,17 @@ router.post("/planned/create", async (req, res) => {
     res.status(error.status || 500).json({ message: error.message });
   }
 });
+router.delete("/planned/all-delete", async (req, res) => {
+  try {
+    const findPlanneds = await plannedModel.find();
+    for (let i = 0; i < findPlanneds.length; i++) {
+      await plannedModel.findByIdAndDelete(findPlanneds[i]._id);
+    }
+    res.json(findPlanneds);
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message });
+  }
+});
 router.delete("/planned/delete/:id", async (req, res) => {
   try {
     const { id } = req.params;
