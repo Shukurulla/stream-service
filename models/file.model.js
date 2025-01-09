@@ -15,7 +15,7 @@ const fileSchema = new mongoose.Schema(
     },
     from: {
       id: {
-        type: mongoose.Types.ObjectId,
+        type: String,
         required: true,
       },
       name: {
