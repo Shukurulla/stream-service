@@ -44,7 +44,11 @@ app.use(
   })
 );
 
-app.use(fileUpload());
+app.use(
+  fileUpload({
+    limits: { fileSize: 100 * 1024 * 1024 }, // Maksimal fayl hajmi 100MB
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
