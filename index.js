@@ -27,6 +27,7 @@ import groupModel from "./models/group.model.js";
 import FileModel from "./models/file.model.js";
 import slugify from "slugify";
 import PlannedRouter from "./routes/planned.routes.js";
+import quests from "./utils/quests.js";
 
 // Cloudinary sozlamalari
 cloudinary.config({
@@ -159,6 +160,14 @@ app.post("/files/create", async (req, res) => {
   } catch (err) {
     console.error("Xatolik:", err.message);
     res.status(500).send(err.message);
+  }
+});
+
+app.get("/quests", async (req, res) => {
+  try {
+    res.json(quests);
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message });
   }
 });
 

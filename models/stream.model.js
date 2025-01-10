@@ -94,6 +94,10 @@ const streamSchema = new mongoose.Schema(
           feedback: { type: String },
           date: { type: Date, default: Date.now },
           read: { type: Boolean, default: false },
+          quests: {
+            type: Object,
+            required: true,
+          },
         },
       ],
     },

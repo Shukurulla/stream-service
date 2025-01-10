@@ -62,7 +62,7 @@ router.get("/feedbacks/", authMiddleware, async (req, res) => {
  *         description: Server xatosi
  */
 router.post("/stream/:id/feedback", verifyToken, async (req, res) => {
-  const { teacher, rate, feedback } = req.body;
+  const { teacher, rate, feedback, quests } = req.body;
   const { id } = req.params;
   const findTeacher = await teacherModel.findById(teacher.id);
 
@@ -89,6 +89,7 @@ router.post("/stream/:id/feedback", verifyToken, async (req, res) => {
             teacher: { ...teacher, profileImage },
             rate,
             comment: feedback,
+            quests,
           },
         },
       }
