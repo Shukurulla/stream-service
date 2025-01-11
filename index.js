@@ -113,8 +113,14 @@ app.post("/files/create", async (req, res) => {
     }
 
     const file = req.files.file;
+    const fileName = file.name;
+    const fileExtension = path.extname(fileName); // Faylning kengaytmasini olish
+    const fileBaseName = path.basename(fileName, fileExtension); // Faylning nomini kengaytmasiz olish
 
-    const slug = slugify(file.name, { lower: true, strict: true });
+    // Slug yaratish: fayl nomini slug qilamiz va kengaytmani qo'shamiz
+    const slug =
+      slugify(fileBaseName, { lower: true, strict: true }) + fileExtension;
+
     const filePath = path.join(
       __dirname,
       "public",
