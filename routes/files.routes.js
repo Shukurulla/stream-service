@@ -17,6 +17,33 @@ router.get("/file/all", async (req, res) => {
     res.status(error.status || 500).json({ message: error.message, error });
   }
 });
+
+router.get("/groups/all", async (req, res) => {
+  try {
+    const teachers = await teacherModel.find();
+    const uniqueArray = [...new Set(teachers.map((item) => item.science))];
+    const files = await FileModel.find();
+    res.json(
+      uniqueArray.map((item) => {
+        const findFiles = files.filter((c) => c.from.science == item);
+        return { science: item, totalFiles: findFiles.length };
+      })
+    );
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message });
+  }
+});
+
+router.post("/file/by-science", async (req, res) => {
+  try {
+    const { science } = req.body;
+    const findFiles = await FileModel.find({ "from.science": science });
+    res.json(findFiles);
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message });
+  }
+});
+
 router.get("/file/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -55,6 +82,7 @@ router.get("/file/group/:number", async (req, res) => {
     res.status(error.status || 500).json({ message: error.message, error });
   }
 });
+
 router.delete("/file/delete/:id", async (req, res) => {
   try {
     const { id } = req.params;
