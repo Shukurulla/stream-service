@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import TeacherRouter from "./routes/teacher.route.js";
 import StreamRouter from "./routes/stream.route.js";
