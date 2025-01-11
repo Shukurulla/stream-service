@@ -92,10 +92,7 @@ app.use(PlannedRouter);
 const swaggerSpec = generateSwaggerSpec();
 
 app.post("/files/create", async (req, res) => {
-  console.log("Body: ", req.body); // body tarkibini tekshirish
-  console.log("Files: ", req.files);
   try {
-    console.log(req.files); // Faylni tekshirish uchun
     const { title, group, teacherId, description } = req.body;
 
     if (!req.files || !req.files.file) {
@@ -113,15 +110,20 @@ app.post("/files/create", async (req, res) => {
     }
 
     const file = req.files.file;
-
     const slug = slugify(file.name, { lower: true, strict: true });
-    const filePath = path.join(
-      __dirname,
-      "public",
-      "files",
-      `${Date.now()}_${slug}`
-    );
 
+    // Faylni saqlash yo'lini belgilash
+    const filesDir = path.join(__dirname, "public", "files");
+    const fileName = `${Date.now()}_${slug}`;
+    const filePath = path.join(filesDir, fileName);
+
+    // `files` papkasini yaratish
+    if (!fs.existsSync(filesDir)) {
+      fs.mkdirSync(filesDir, { recursive: true });
+      console.log("`files` papkasi yaratildi");
+    }
+
+    // Faylni saqlash
     file.mv(filePath, async (err) => {
       if (err) {
         console.error("Faylni saqlashda xatolik:", err);
@@ -142,9 +144,7 @@ app.post("/files/create", async (req, res) => {
             profileImage: findTeacher.profileImage,
             id: findTeacher._id,
           },
-          fileUrl:
-            "http://45.134.39.117:3002/public/files/" +
-            filePath.split("public\\files\\")[1],
+          fileUrl: `http://45.134.39.117:3002/public/files/${fileName}`,
           slug,
         };
 
