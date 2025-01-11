@@ -34,6 +34,18 @@ router.get("/groups/all", async (req, res) => {
   }
 });
 
+router.get("/file/all-delete", async (req, res) => {
+  try {
+    const files = await FileModel.find();
+    for (let i = 0; i < files.length; i++) {
+      await FileModel.findByIdAndDelete(files[i]._id);
+    }
+    res.json(files);
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message, error });
+  }
+});
+
 router.post("/file/by-science", async (req, res) => {
   try {
     const { science } = req.body;
