@@ -92,7 +92,10 @@ app.use(PlannedRouter);
 const swaggerSpec = generateSwaggerSpec();
 
 app.post("/files/create", async (req, res) => {
+  console.log("Body: ", req.body); // body tarkibini tekshirish
+  console.log("Files: ", req.files);
   try {
+    console.log(req.files); // Faylni tekshirish uchun
     const { title, group, teacherId, description } = req.body;
 
     if (!req.files || !req.files.file) {
@@ -110,14 +113,8 @@ app.post("/files/create", async (req, res) => {
     }
 
     const file = req.files.file;
-    const fileName = file.name;
-    const fileExtension = path.extname(fileName); // Faylning kengaytmasini olish
-    const fileBaseName = path.basename(fileName, fileExtension); // Faylning nomini kengaytmasiz olish
-    console.log(fileExtension, fileBaseName);
-    // Slug yaratish: fayl nomini slug qilamiz va kengaytmani qo'shamiz
-    const slug =
-      slugify(fileBaseName, { lower: true, strict: true }) + fileExtension;
 
+    const slug = slugify(file.name, { lower: true, strict: true });
     const filePath = path.join(
       __dirname,
       "public",
