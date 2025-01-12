@@ -193,7 +193,7 @@ router.get("/notifications/:studentId", async (req, res) => {
 
     // Find all notifications for the student by their ID
     const notifications = await studentNotificationModel.find({
-      student: studentId,
+      "student.id": studentId,
     });
 
     // Calculate the average rating for all notifications
