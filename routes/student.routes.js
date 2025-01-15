@@ -275,7 +275,7 @@ router.post("/student/login", async (req, res, next) => {
  */
 router.get("/student/me", authMiddleware, async (req, res) => {
   try {
-    const student = await studentModel.findById(req.userData.userId); // JWT orqali id olinadi
+    const student = await studentModel.findById(req.userData.id); // JWT orqali id olinadi
     if (!student) {
       return res.status(404).json({ message: "Talaba topilmadi" });
     }
