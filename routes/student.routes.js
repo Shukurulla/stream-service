@@ -294,6 +294,16 @@ router.get("/all-students", async (req, res) => {
   }
 });
 
+router.delete("/student/delete/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const student = await studentModel.findByIdAndDelete(id);
+    res.json(student);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 /**
  * @swagger
  * /student/profile:

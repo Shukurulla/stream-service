@@ -29,6 +29,7 @@ import FileModel from "./models/file.model.js";
 import slugify from "slugify";
 import PlannedRouter from "./routes/planned.routes.js";
 import quests from "./utils/quests.js";
+import { verifyToken } from "./middleware/verifyToken.middleware.js";
 
 // Cloudinary sozlamalari
 cloudinary.config({
@@ -170,6 +171,64 @@ app.get("/quests", async (req, res) => {
     res.json(quests);
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message });
+  }
+});
+
+app.put("/teacher/profile", verifyToken, async (req, res) => {
+  try {
+    const updates = {};
+
+    // Agar parol berilgan bo'lsa, uni yangilash
+    if (req.body.password) {
+      updates.password = await bcrypt.hash(req.body.password, 10);
+      updates.originalPassword = req.body.password;
+    }
+
+    // Faqat berilgan maydonlarni yangilash uchun $set operatoridan foydalanish
+    if (req.body.name) updates.name = req.body.name;
+    if (req.body.science) updates.science = req.body.science;
+
+    // Agar rasm yuklangan bo'lsa
+    if (req.files && req.files.profileImage) {
+      const imageFile = req.files.profileImage;
+      const imagesDir = path.join(__dirname, "public", "images");
+
+      // `images` papkasini yaratish
+      if (!fs.existsSync(imagesDir)) {
+        fs.mkdirSync(imagesDir, { recursive: true });
+        console.log("`images` papkasi yaratildi");
+      }
+
+      const imageName = `${Date.now()}_${imageFile.name}`;
+      const imagePath = path.join(imagesDir, imageName);
+
+      // Rasmni saqlash
+      imageFile.mv(imagePath, (err) => {
+        if (err) {
+          console.error("Rasmni saqlashda xatolik:", err);
+          return res.status(500).send("Rasmni saqlashda xatolik yuz berdi");
+        }
+      });
+
+      // Rasm uchun URL yaratish
+      updates.profileImage = `http://45.134.39.117:3002/public/images/${imageName}`;
+    }
+
+    // Yangilash jarayoni
+    const result = await teacherModel.findByIdAndUpdate(
+      { _id: req.user.userId },
+      { $set: updates }
+    );
+
+    if (!result) {
+      return res.status(404).json({ message: "Foydalanuvchi topilmadi" });
+    }
+
+    const teacher = await teacherModel.findById(req.user.userId);
+    res.status(200).json(teacher);
+  } catch (error) {
+    console.error("Xatolik:", error.message);
+    res.status(500).json({ message: "Server xatoligi: " + error.message });
   }
 });
 

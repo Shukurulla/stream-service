@@ -14,6 +14,17 @@ router.get("/theme/all", async (req, res) => {
     res.status(error.status || 500).json({ error, message: error.message });
   }
 });
+router.get("/theme/all-delete", async (req, res) => {
+  try {
+    const themes = await ThemeModel.find();
+    for (let i = 0; i < themes.length; i++) {
+      await ThemeModel.findByIdAndDelete(themes[i]._id);
+    }
+    res.json(themes);
+  } catch (error) {
+    res.status(error.status || 500).json({ error, message: error.message });
+  }
+});
 router.get("/theme/my-theme", authMiddleware, async (req, res) => {
   try {
     const { userId } = req.userData;

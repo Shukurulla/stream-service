@@ -300,6 +300,18 @@ router.get("/streams/all", async (req, res) => {
   }
 });
 
+router.delete("/streams/all-delete", async (req, res) => {
+  try {
+    const streams = await streamModel.find();
+    for (let i = 0; i < streams.length; i++) {
+      await streamModel.findByIdAndDelete(streams[i]._id);
+    }
+    res.json(streams);
+  } catch (error) {
+    res.json({ message: error.message });
+  }
+});
+
 router.get("/my-streams/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
