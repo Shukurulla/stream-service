@@ -185,32 +185,62 @@ router.get("/notifications/:studentId", async (req, res) => {
   try {
     const { studentId } = req.params;
 
+    // Talabani tekshirish
     const findStudent = await studentModel.findById(studentId);
-
     if (!findStudent) {
       return res.status(400).json({ message: "Bunday student topilmadi" });
     }
 
-    // Find all notifications for the student by their ID
-    const notifications = await studentNotificationModel.find({
+    // studentNotificationModel dan ma'lumotlarni olish
+    const studentNotifications = await studentNotificationModel.find({
       "student.id": studentId,
     });
 
-    // Calculate the average rating for all notifications
+    // themeFeedbackModel dan ma'lumotlarni olish
+    const themeFeedbacks = await ThemeFeedbackModel.find({
+      "student.id": studentId,
+    });
+
+    // Ratinglarni hisoblash
     let totalRating = 0;
     let totalFeedbacks = 0;
 
-    notifications.forEach((notification) => {
+    // studentNotificationModel ratinglarini qo'shish
+    studentNotifications.forEach((notification) => {
       if (notification.rate) {
         totalRating += notification.rate;
         totalFeedbacks += 1;
       }
     });
 
+    // themeFeedbackModel ratinglarini qo'shish
+    themeFeedbacks.forEach((feedback) => {
+      if (feedback.rating) {
+        totalRating += feedback.rating;
+        totalFeedbacks += 1;
+      }
+    });
+
     const averageRating = totalFeedbacks > 0 ? totalRating / totalFeedbacks : 0;
 
+    // Ma'lumotlarni birlashtirish va bir xil formatda qaytarish
+    const formattedNotifications = [
+      ...studentNotifications.map((notification) => ({
+        from: notification.from,
+        rate: notification.rate || null,
+        feedback: notification.feedback || null,
+        createdAt: notification.createdAt,
+      })),
+      ...themeFeedbacks.map((feedback) => ({
+        from: feedback.teacher,
+        rate: feedback.rating || null,
+        feedback: feedback.feedback || null,
+        createdAt: feedback.createdAt,
+      })),
+    ];
+
     res.status(200).json({
-      notifications,
+      notifications: formattedNotifications,
       averageRating,
     });
   } catch (error) {
