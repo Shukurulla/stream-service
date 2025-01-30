@@ -200,7 +200,7 @@ router.get("/stream/:liveStreamId", async (req, res) => {
       totalPages = response.data.pagination.pagesTotal;
       currentPage++;
     } while (currentPage <= totalPages);
-
+    console.log(allVideos);
     // Maqsadli streamni filtr qilish
     const stream = allVideos.find(
       (video) => video.source.liveStream.liveStreamId === liveStreamId
@@ -212,7 +212,7 @@ router.get("/stream/:liveStreamId", async (req, res) => {
         .json({ message: "Bu streamga tegishli video topilmadi" });
     }
 
-    res.json({ stream: findStream, assets: stream.assets });
+    res.json({ stream: findStream, assets: stream.assets, all: allVideos });
   } catch (error) {
     res.status(error.response?.status || 500).json({ message: error.message });
   }
