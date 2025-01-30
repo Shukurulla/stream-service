@@ -58,9 +58,7 @@ router.get("/get-token", async (req, res) => {
 
     res.json({
       token,
-      expiresAt: `${expiresDate.toLocaleDateString(
-        "uz-UZ"
-      )} ${expiresDate.toLocaleTimeString("uz-UZ")}`,
+      expiresAt: `${expiresDate.toString()}`,
     });
   } catch (error) {
     console.error("❌ Tokenni yuborishda xatolik:", error.message);
