@@ -379,6 +379,7 @@ router.put("/student/profile", verifyToken, async (req, res) => {
  *       500:
  *         description: Server error
  */
+
 router.delete("/student/profile", verifyToken, async (req, res) => {
   try {
     const student = await studentModel.findByIdAndDelete(req.user.userId);
