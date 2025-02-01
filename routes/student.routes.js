@@ -360,6 +360,31 @@ router.put("/student/profile", verifyToken, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+router.put("/student/edit/:id", async (req, res) => {
+  try {
+    const student = await studentModel.findById(req.params.id);
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    if (req.body.password) {
+      student.password = await bcrypt.hash(req.body.password, 10);
+      student.originalPassword = req.body.password;
+    }
+
+    student.name = req.body.name || student.name;
+    student.kurs = req.body.kurs || student.kurs;
+    student.profileImage = req.body.profileImage || student.profileImage;
+
+    await student.save();
+    res
+      .status(200)
+      .json({ message: "Student profile updated successfully", student });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 /**
  * @swagger
