@@ -60,8 +60,6 @@ router.post("/create-teacher", async (req, res) => {
     const { password, profileImage } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const url = await imageToUrl(profileImage);
-
     const teacher = await teacherModel.create({
       ...req.body,
       originalPassword: password,
@@ -128,8 +126,14 @@ router.post("/create-teacher", async (req, res) => {
  */
 router.post("/login-teacher", async (req, res) => {
   try {
-    const { name, password } = req.body;
-    const user = await teacherModel.findOne({ name });
+    const { username, password } = req.body;
+    if (!username) {
+      return res.status(401).json({
+        status: "error",
+        message: "Iltimos username kiriting",
+      });
+    }
+    const user = await teacherModel.findOne({ username });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res

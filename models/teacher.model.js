@@ -5,6 +5,10 @@ const teacherModel = mongoose.model("Teacher", {
     type: String,
     required: true,
   },
+  username: {
+    type: String,
+    required: true,
+  },
   profileImage: {
     type: String,
     required: true,
