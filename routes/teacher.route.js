@@ -150,6 +150,7 @@ router.post("/login-teacher", async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 });
+
 /**
  * @swagger
  * /teacher/me:
@@ -301,6 +302,7 @@ router.put("/teacher/edit/:id", async (req, res) => {
     if (req.body.name) updates.name = req.body.name;
     if (req.body.science) updates.science = req.body.science;
     if (req.body.profileImage) updates.profileImage = req.body.profileImage;
+    if (req.body.username) updates.username = req.body.username;
 
     const result = await teacherModel.findByIdAndUpdate(
       { _id: req.params.id },
