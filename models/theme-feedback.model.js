@@ -49,9 +49,11 @@ const themeFeedBackSchema = new mongoose.Schema(
     rating: {
       type: Number,
     },
+    voiceMessage: {
+      type: String,
+    },
     feedback: {
       type: String,
-      required: true,
     },
   },
   { timestamps: true }

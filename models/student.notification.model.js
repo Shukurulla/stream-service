@@ -64,7 +64,9 @@ const studentNotificationModel = mongoose.model("studentNotification", {
   },
   feedback: {
     type: String,
-    required: true,
+  },
+  voiceMessage: {
+    type: String,
   },
   read: {
     type: Boolean,

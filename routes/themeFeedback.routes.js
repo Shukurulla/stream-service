@@ -5,6 +5,10 @@ import teacherModel from "../models/teacher.model.js";
 import ThemeFeedbackModel from "../models/theme-feedback.model.js";
 import ThemeModel from "../models/theme.model.js";
 import Stream from "../models/stream.model.js";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+import path from "path";
 import { all } from "axios";
 
 const router = express.Router();
@@ -80,6 +84,29 @@ router.get("/theme-feedback/by-theme/:id", async (req, res) => {
 router.post("/theme-feedback/create", authMiddleware, async (req, res) => {
   try {
     const { teacher, themeId, student } = req.body;
+
+    // Fayl mavjudligini tekshirish
+    if (!req.files || !req.files.voiceMessage) {
+      return res.status(400).json({ message: "Fayl yuklanmadi" });
+    }
+
+    const voiceMessage = req.files.voiceMessage;
+
+    // Fayl formati tekshirish (mp3)
+    if (!voiceMessage.mimetype.startsWith("audio/mpeg")) {
+      return res
+        .status(400)
+        .json({ message: "Faqat MP3 fayllar qabul qilinadi" });
+    }
+
+    // Fayl nomini yaratish
+    const fileName = Date.now() + "_" + voiceMessage.name;
+    const filePath = path.join(__dirname, "../public/voices", fileName);
+
+    // Faylni saqlash
+    await voiceMessage.mv(filePath);
+
+    // Teacher, Student va Theme ma'lumotlarini tekshirish
     const findTeacher = await teacherModel.findById(teacher);
     if (!findTeacher) {
       return res.status(400).json({ message: "Bunday teacher topilmadi" });
@@ -93,6 +120,7 @@ router.post("/theme-feedback/create", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Bunday theme topilmadi" });
     }
 
+    // Teacher va Student ma'lumotlarini tayyorlash
     const teacherSchema = {
       name: findTeacher.name,
       science: findTeacher.science,
@@ -106,12 +134,15 @@ router.post("/theme-feedback/create", authMiddleware, async (req, res) => {
       id: findStudent._id,
     };
 
+    // Feedback yaratish
     const feedback = await ThemeFeedbackModel.create({
       ...req.body,
       teacher: teacherSchema,
       student: studentSchema,
       theme: findTheme,
+      voiceMessage: `/public/voices/${fileName}`, // Fayl yo'li
     });
+
     if (!feedback) {
       return res.status(500).json({ message: "Feedback qoshilmadi" });
     }

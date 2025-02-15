@@ -5,6 +5,13 @@ import Stream from "../models/stream.model.js";
 import studentModel from "../models/student.model.js";
 import teacherModel from "../models/teacher.model.js";
 import ThemeFeedbackModel from "../models/theme-feedback.model.js";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = Router();
 
@@ -87,22 +94,37 @@ router.get(
  *       500:
  *         description: "Server xatosi"
  */
+
 router.post("/notifications", async (req, res) => {
   try {
     const { stream, student, from, rate, feedback } = req.body;
+
+    // Fayl mavjudligini tekshirish
+    if (!req.files || !req.files.voiceMessage) {
+      return res.status(400).json({ message: "Fayl yuklanmadi" });
+    }
+
+    const voiceMessage = req.files.voiceMessage;
+
+    // Fayl formati tekshirish (mp3)
+    if (!voiceMessage.mimetype.startsWith("audio/mpeg")) {
+      return res
+        .status(400)
+        .json({ message: "Faqat MP3 fayllar qabul qilinadi" });
+    }
+
+    // Fayl nomini yaratish
+    const fileName = Date.now() + "_" + voiceMessage.name;
+    const filePath = path.join(__dirname, "../public/voices", fileName);
+
+    // Faylni saqlash
+    await voiceMessage.mv(filePath);
+
+    // Stream, Student va Teacher ma'lumotlarini tekshirish
     const findStream = await Stream.findById(stream);
     const findStudent = await studentModel.findById(student);
     const findTeacher = await teacherModel.findById(from);
-    if (feedback == "") {
-      return res
-        .status(400)
-        .json({ message: "Feedback bosh bolmasligi kerak" });
-    }
-    if (isNaN(rate)) {
-      return res
-        .status(400)
-        .json({ message: "Ratening malumot turi Number bolishi kerak" });
-    }
+
     if (!findStream) {
       return res.status(400).json({ message: "Bunday stream topilmadi" });
     }
@@ -113,9 +135,11 @@ router.post("/notifications", async (req, res) => {
       return res.status(400).json({ message: "Bunday teacher topilmadi" });
     }
 
+    // Notification yaratish
     const schema = {
       rate,
-      feedback,
+      feedback: feedback || "", // Agar feedback bo'sh bo'lsa, bo'sh qator qo'yiladi
+      voiceMessage: `/public/voices/${fileName}`, // Fayl yo'li
       stream: {
         streamId: findStream._id,
         title: findStream.title,
@@ -135,6 +159,7 @@ router.post("/notifications", async (req, res) => {
         id: findTeacher._id,
       },
     };
+
     const notification = await studentNotificationModel.create(schema);
     if (!notification) {
       return res
@@ -143,7 +168,9 @@ router.post("/notifications", async (req, res) => {
     }
     res.json(notification);
   } catch (error) {
-    res.status(500).json({ message: "Error creating notification", error });
+    res
+      .status(500)
+      .json({ message: "Error creating notification", error: error.message });
   }
 });
 
@@ -243,6 +270,110 @@ router.get("/notifications/:studentId", async (req, res) => {
       notifications: formattedNotifications,
       averageRating,
     });
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving notifications", error });
+  }
+});
+
+router.get("/notifications/rating/:studentId", async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    // Talabani tekshirish
+    const findStudent = await studentModel.findById(studentId);
+    if (!findStudent) {
+      return res.status(400).json({ message: "Bunday student topilmadi" });
+    }
+
+    // studentNotificationModel dan ma'lumotlarni olish
+    const studentNotifications = await studentNotificationModel.find({
+      "student.id": studentId,
+    });
+
+    // themeFeedbackModel dan ma'lumotlarni olish
+    const themeFeedbacks = await ThemeFeedbackModel.find({
+      "student.id": studentId,
+    });
+
+    // Bugungi kunga nisbatan 5 kun oldingi sanani hisoblash
+    const today = new Date();
+    const fiveDaysAgo = new Date(today);
+    fiveDaysAgo.setDate(today.getDate() - 5);
+
+    // Ma'lumotlarni birlashtirish
+    const allNotifications = [
+      ...studentNotifications.map((notification) => ({
+        from: notification.from,
+        rate: notification.rate || null,
+        feedback: notification.feedback || null,
+        createdAt: notification.createdAt,
+      })),
+      ...themeFeedbacks.map((feedback) => ({
+        from: feedback.teacher,
+        rate: feedback.rating || null,
+        feedback: feedback.feedback || null,
+        createdAt: feedback.createdAt,
+      })),
+    ];
+
+    // Bugungi kunga nisbatan 5 kun oldingi ma'lumotlarni olish
+    const recentNotifications = allNotifications.filter((notification) => {
+      const createdAt = new Date(notification.createdAt);
+      return createdAt >= fiveDaysAgo;
+    });
+
+    // `from.science` bo'yicha guruhlash
+    const groupedByScience = {};
+
+    recentNotifications.forEach((notification) => {
+      const science = notification.from.science;
+      const date = new Date(notification.createdAt);
+      const formattedDate = `${String(date.getDate()).padStart(
+        2,
+        "0"
+      )}.${String(date.getMonth() + 1).padStart(2, "0")}.${date.getFullYear()}`;
+
+      if (!groupedByScience[science]) {
+        groupedByScience[science] = [];
+      }
+
+      // Yangi sanani qo'shish
+      const existingDate = groupedByScience[science].find(
+        (item) => item.date === formattedDate
+      );
+      if (existingDate) {
+        existingDate.ratings.push({
+          from: notification.from,
+          rate: notification.rate,
+          feedback: notification.feedback,
+        });
+        existingDate.totalRating += notification.rate || 0;
+      } else {
+        groupedByScience[science].push({
+          date: formattedDate,
+          ratings: [
+            {
+              from: notification.from,
+              rate: notification.rate,
+              feedback: notification.feedback,
+            },
+          ],
+          totalRating: notification.rate || 0,
+        });
+      }
+    });
+
+    // Final ma'lumotni formatlash
+    const response = Object.keys(groupedByScience).map((science) => ({
+      science,
+      ratings: groupedByScience[science].map((item) => ({
+        date: item.date,
+        ratings: item.ratings,
+        totalRating: item.totalRating,
+      })),
+    }));
+
+    res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ message: "Error retrieving notifications", error });
   }
