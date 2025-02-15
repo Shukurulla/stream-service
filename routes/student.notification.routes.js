@@ -5,7 +5,6 @@ import Stream from "../models/stream.model.js";
 import studentModel from "../models/student.model.js";
 import teacherModel from "../models/teacher.model.js";
 import ThemeFeedbackModel from "../models/theme-feedback.model.js";
-import multer from "multer";
 import path from "path";
 import fs from "fs";
 
