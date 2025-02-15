@@ -83,27 +83,27 @@ router.get("/theme-feedback/by-theme/:id", async (req, res) => {
 router.post("/theme-feedback/create", authMiddleware, async (req, res) => {
   try {
     const { teacher, themeId, student } = req.body;
+    let voiceMessagePath = ""; // Fayl yo'li bo'sh bo'lishi mumkin
 
-    // Fayl mavjudligini tekshirish
-    if (!req.files || !req.files.voiceMessage) {
-      return res.status(400).json({ message: "Fayl yuklanmadi" });
+    // Agar fayl yuborilgan bo'lsa, uni tekshiramiz va saqlaymiz
+    if (req.files && req.files.voiceMessage) {
+      const voiceMessage = req.files.voiceMessage;
+
+      // Fayl formati tekshirish (mp3)
+      if (!voiceMessage.mimetype.startsWith("audio/mpeg")) {
+        return res
+          .status(400)
+          .json({ message: "Faqat MP3 fayllar qabul qilinadi" });
+      }
+
+      // Fayl nomini yaratish
+      const fileName = Date.now() + "_" + voiceMessage.name;
+      const filePath = path.join(__dirname, "../public/voices", fileName);
+
+      // Faylni saqlash
+      await voiceMessage.mv(filePath);
+      voiceMessagePath = `/public/voices/${fileName}`; // Fayl yo'li
     }
-
-    const voiceMessage = req.files.voiceMessage;
-
-    // Fayl formati tekshirish (mp3)
-    if (!voiceMessage.mimetype.startsWith("audio/mpeg")) {
-      return res
-        .status(400)
-        .json({ message: "Faqat MP3 fayllar qabul qilinadi" });
-    }
-
-    // Fayl nomini yaratish
-    const fileName = Date.now() + "_" + voiceMessage.name;
-    const filePath = path.join(__dirname, "../public/voices", fileName);
-
-    // Faylni saqlash
-    await voiceMessage.mv(filePath);
 
     // Teacher, Student va Theme ma'lumotlarini tekshirish
     const findTeacher = await teacherModel.findById(teacher);
@@ -112,7 +112,7 @@ router.post("/theme-feedback/create", authMiddleware, async (req, res) => {
     }
     const findStudent = await studentModel.findById(student);
     if (!findStudent) {
-      return res.status(400).json({ message: "Bunday Student topilmadi" });
+      return res.status(400).json({ message: "Bunday student topilmadi" });
     }
     const findTheme = await ThemeModel.findById(themeId);
     if (!findTheme) {
@@ -139,7 +139,7 @@ router.post("/theme-feedback/create", authMiddleware, async (req, res) => {
       teacher: teacherSchema,
       student: studentSchema,
       theme: findTheme,
-      voiceMessage: `/public/voices/${fileName}`, // Fayl yo'li
+      voiceMessage: voiceMessagePath, // Agar fayl yuklanmasa, bo'sh string bo'ladi
     });
 
     if (!feedback) {

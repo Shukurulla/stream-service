@@ -97,27 +97,27 @@ router.get(
 router.post("/notifications", async (req, res) => {
   try {
     const { stream, student, from, rate, feedback } = req.body;
+    let voiceMessagePath = "";
 
-    // Fayl mavjudligini tekshirish
-    if (!req.files || !req.files.voiceMessage) {
-      return res.status(400).json({ message: "Fayl yuklanmadi" });
+    // Agar fayl yuborilgan bo'lsa, uni tekshiramiz va saqlaymiz
+    if (req.files && req.files.voiceMessage) {
+      const voiceMessage = req.files.voiceMessage;
+
+      // Fayl formati tekshirish (mp3)
+      if (!voiceMessage.mimetype.startsWith("audio/mpeg")) {
+        return res
+          .status(400)
+          .json({ message: "Faqat MP3 fayllar qabul qilinadi" });
+      }
+
+      // Fayl nomini yaratish
+      const fileName = Date.now() + "_" + voiceMessage.name;
+      const filePath = path.join(__dirname, "../public/voices", fileName);
+
+      // Faylni saqlash
+      await voiceMessage.mv(filePath);
+      voiceMessagePath = `/public/voices/${fileName}`; // Fayl yo'li
     }
-
-    const voiceMessage = req.files.voiceMessage;
-
-    // Fayl formati tekshirish (mp3)
-    if (!voiceMessage.mimetype.startsWith("audio/mpeg")) {
-      return res
-        .status(400)
-        .json({ message: "Faqat MP3 fayllar qabul qilinadi" });
-    }
-
-    // Fayl nomini yaratish
-    const fileName = Date.now() + "_" + voiceMessage.name;
-    const filePath = path.join(__dirname, "../public/voices", fileName);
-
-    // Faylni saqlash
-    await voiceMessage.mv(filePath);
 
     // Stream, Student va Teacher ma'lumotlarini tekshirish
     const findStream = await Stream.findById(stream);
@@ -138,7 +138,7 @@ router.post("/notifications", async (req, res) => {
     const schema = {
       rate,
       feedback: feedback || "", // Agar feedback bo'sh bo'lsa, bo'sh qator qo'yiladi
-      voiceMessage: `/public/voices/${fileName}`, // Fayl yo'li
+      voiceMessage: voiceMessagePath, // Agar fayl bo'lsa, yo'lni saqlaydi, bo'lmasa bo'sh qoladi
       stream: {
         streamId: findStream._id,
         title: findStream.title,
