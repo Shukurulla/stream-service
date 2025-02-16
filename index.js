@@ -66,9 +66,13 @@ app.use(tokenMiddleware);
 const port = process.env.PORT || 3000;
 const mongo_uri = process.env.MONGO_URI;
 
-mongoose.connect(mongo_uri).then(() => {
-  console.log("mongoDb connected");
-});
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => console.error(err));
 
 // Swagger UI fayllarini statik tarzda xizmat qilish
 app.use(

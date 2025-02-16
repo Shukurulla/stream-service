@@ -278,6 +278,10 @@ router.get("/notifications/rating/:studentId", async (req, res) => {
   try {
     const { studentId } = req.params;
 
+    await studentNotificationModel.updateMany({
+      $set: { createdAt: new Date() },
+    });
+
     // Talabani tekshirish
     const findStudent = await studentModel.findById(studentId);
     if (!findStudent) {
@@ -294,10 +298,15 @@ router.get("/notifications/rating/:studentId", async (req, res) => {
       "student.id": studentId,
     });
 
-    // Bugungi kunga nisbatan 5 kun oldingi sanani hisoblash
+    // Bugungi sana va 5 kun oldingi sana
     const today = new Date();
-    const fiveDaysAgo = new Date(today);
+    today.setHours(23, 59, 59, 999); // Bugunning oxiri
+    const fiveDaysAgo = new Date();
     fiveDaysAgo.setDate(today.getDate() - 5);
+    fiveDaysAgo.setHours(0, 0, 0, 0); // 5 kun oldingi kunning boshi
+
+    console.log("Bugungi sana:", today);
+    console.log("5 kun oldingi sana:", fiveDaysAgo);
 
     // Ma'lumotlarni birlashtirish
     const allNotifications = [
@@ -305,21 +314,32 @@ router.get("/notifications/rating/:studentId", async (req, res) => {
         from: notification.from,
         rate: notification.rate || null,
         feedback: notification.feedback || null,
-        createdAt: notification.createdAt,
+        createdAt: notification.createdAt
+          ? new Date(notification.createdAt)
+          : null, // Agar `createdAt` mavjud bo‘lsa, `Date` ga o‘girish
       })),
       ...themeFeedbacks.map((feedback) => ({
         from: feedback.teacher,
         rate: feedback.rating || null,
         feedback: feedback.feedback || null,
-        createdAt: feedback.createdAt,
+        createdAt: feedback.createdAt ? new Date(feedback.createdAt) : null,
       })),
     ];
 
-    // Bugungi kunga nisbatan 5 kun oldingi ma'lumotlarni olish
+    console.log("Barcha ma'lumotlar:", allNotifications);
+
+    // 5 kun ichidagi ma'lumotlarni olish
     const recentNotifications = allNotifications.filter((notification) => {
-      const createdAt = new Date(notification.createdAt);
-      return createdAt >= fiveDaysAgo;
+      if (!notification.createdAt || isNaN(notification.createdAt.getTime())) {
+        console.log("Noto‘g‘ri sana:", notification);
+        return false;
+      }
+      return (
+        notification.createdAt >= fiveDaysAgo && notification.createdAt <= today
+      );
     });
+
+    console.log("5 kun ichidagi ma'lumotlar:", recentNotifications);
 
     // `from.science` bo'yicha guruhlash
     const groupedByScience = {};
@@ -374,6 +394,7 @@ router.get("/notifications/rating/:studentId", async (req, res) => {
 
     res.status(200).json(response);
   } catch (error) {
+    console.error("Xatolik:", error);
     res.status(500).json({ message: "Error retrieving notifications", error });
   }
 });
