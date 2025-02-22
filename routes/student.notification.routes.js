@@ -253,13 +253,19 @@ router.get("/notifications/:studentId", async (req, res) => {
     const formattedNotifications = [
       ...studentNotifications.map((notification) => ({
         from: notification.from,
+        voiceMessage: notification.voiceMessage || null,
         rate: notification.rate || null,
+        stream: notification.stream,
+        type: "stream",
         feedback: notification.feedback || null,
         createdAt: notification.createdAt,
       })),
       ...themeFeedbacks.map((feedback) => ({
         from: feedback.teacher,
         rate: feedback.rating || null,
+        voiceMessage: feedback.voiceMessage || null,
+        type: "theme",
+        theme: feedback.theme,
         feedback: feedback.feedback || null,
         createdAt: feedback.createdAt,
       })),

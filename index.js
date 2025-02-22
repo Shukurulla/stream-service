@@ -47,11 +47,7 @@ app.use(
   })
 );
 
-app.use(
-  fileUpload({
-    limits: { fileSize: 100 * 1024 * 1024 }, // Maksimal fayl hajmi 100MB
-  })
-);
+app.use(fileUpload());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -179,6 +175,7 @@ app.get("/quests", async (req, res) => {
 });
 
 app.put("/teacher/profile", verifyToken, async (req, res) => {
+  console.log(req.files);
   try {
     const updates = {};
 
