@@ -102,7 +102,7 @@ router.post("/theme-feedback/create", authMiddleware, async (req, res) => {
 
       // Faylni saqlash
       await voiceMessage.mv(filePath);
-      voiceMessagePath = `/public/voices/${fileName}`; // Fayl yo'li
+      voiceMessagePath = `http://45.134.39.117:3002/public/voices/${fileName}`; // Fayl yo'li
     }
 
     // Teacher, Student va Theme ma'lumotlarini tekshirish

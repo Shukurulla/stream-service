@@ -30,6 +30,8 @@ import slugify from "slugify";
 import PlannedRouter from "./routes/planned.routes.js";
 import quests from "./utils/quests.js";
 import { verifyToken } from "./middleware/verifyToken.middleware.js";
+import studentNotificationModel from "./models/student.notification.model.js";
+import ThemeFeedbackModel from "./models/theme-feedback.model.js";
 
 // Cloudinary sozlamalari
 cloudinary.config({
@@ -67,7 +69,43 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log("MongoDB Connected"))
+  .then(() => {
+    console.log("MongoDB Connected");
+    (async () => {
+      try {
+        const notifications = await studentNotificationModel.find({
+          voiceMessage: "http://45.134.39.117:3002",
+        });
+        const themeFeedbacks = await ThemeFeedbackModel.find({
+          voiceMessage: "http://45.134.39.117:3002",
+        });
+
+        for (let i = 0; i < notifications.length; i++) {
+          if (notifications[i].voiceMessage !== null) {
+            await studentNotificationModel.findByIdAndUpdate(
+              notifications[i]._id,
+              {
+                voiceMessage: null,
+              }
+            );
+            console.log(`complate ${notifications[i]._id}`);
+          }
+        }
+        console.log("complate notifications");
+        for (let i = 0; i < themeFeedbacks.length; i++) {
+          if (themeFeedbacks[i].voiceMessage !== null) {
+            await ThemeFeedbackModel.findByIdAndUpdate(themeFeedbacks[i]._id, {
+              voiceMessage: false,
+            });
+            console.log(`complate ${themeFeedbacks[i]._id}`);
+          }
+        }
+        console.log("complate themefedback");
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+  })
   .catch((err) => console.error(err));
 
 // Swagger UI fayllarini statik tarzda xizmat qilish
