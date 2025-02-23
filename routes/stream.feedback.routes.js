@@ -67,6 +67,11 @@ router.post("/stream/:id/feedback", verifyToken, async (req, res) => {
   const findTeacher = await teacherModel.findById(teacher.id);
 
   const stream = await streamModel.findById(id);
+  if (!stream) {
+    return res
+      .status(400)
+      .json({ status: "error", message: "Bunday stream topilmadi" });
+  }
   const ratings = stream.rating.ratings.filter(
     (c) => c.teacher.id == teacher.id
   );
