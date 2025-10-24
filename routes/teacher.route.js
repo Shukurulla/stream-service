@@ -127,6 +127,8 @@ router.post("/create-teacher", async (req, res) => {
 router.post("/login-teacher", async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log(req.body);
+
     if (!username) {
       return res.status(401).json({
         status: "error",

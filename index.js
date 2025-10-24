@@ -169,6 +169,9 @@ app.post("/files/create", async (req, res) => {
     res.status(500).send(err.message);
   }
 });
+app.get("/", async (req, res) => {
+  res.status(200).json({ status: "success", data: "hi" });
+});
 
 app.get("/quests", async (req, res) => {
   try {
