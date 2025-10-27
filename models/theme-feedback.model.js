@@ -13,7 +13,7 @@ const themeFeedBackSchema = new mongoose.Schema(
       },
       profileImage: {
         type: String,
-        required: true,
+        required: false,
       },
       id: {
         type: mongoose.Types.ObjectId,
@@ -39,7 +39,7 @@ const themeFeedBackSchema = new mongoose.Schema(
       },
       profileImage: {
         type: String,
-        required: true,
+        required: false,
       },
       id: {
         type: mongoose.Types.ObjectId,
