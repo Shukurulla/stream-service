@@ -180,7 +180,7 @@ router.post("/scores", async (req, res) => {
       existingScore.score = score;
       await existingScore.save();
 
-      res
+      return res
         .status(200)
         .json({ message: "Natija yangilandi", data: existingScore });
     } else {
@@ -199,12 +199,12 @@ router.post("/scores", async (req, res) => {
 
       await newScore.save();
 
-      res
+      return res
         .status(201)
         .json({ message: "Natija muvaffaqiyatli qo'shildi", data: newScore });
     }
   } catch (error) {
-    res
+    return res
       .status(400)
       .json({ message: "Test natijasini saqlashda xatolik", error });
   }
@@ -258,12 +258,12 @@ router.get("/scores", async (req, res) => {
       student.progress = await calculateStudentProgress(student._id);
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Barcha studentlarning test natijalari",
       data: scores,
     });
   } catch (error) {
-    res.status(400).json({
+    return res.status(400).json({
       message: "Test natijalarini olishda xatolik",
       error: error.message || "Noma'lum xatolik",
     });
@@ -328,7 +328,7 @@ router.get("/lessons/:lesson", async (req, res) => {
       { $sort: { totalTopicsCompleted: -1 } },
     ]);
 
-    res.status(200).json({
+    return res.status(200).json({
       message: `${lesson} darsiga tegishli studentlar natijalari`,
       data: scores,
     });
